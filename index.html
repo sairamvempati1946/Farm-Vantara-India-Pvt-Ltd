@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="./favicon.png">
+  <title>Farm Vantara – Bridging Farms to Markets | Corporate Agricultural Platform</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary-dark: #0a2e1c;
+      --primary: #1e6b3b;
+      --primary-light: #2a8a4a;
+      --secondary: #c87a1f;
+      --secondary-dark: #a55d12;
+      --accent-gold: #e6b342;
+      --gray-50: #fafbf9;
+      --gray-100: #f0f3ef;
+      --gray-200: #e2e6e0;
+      --gray-700: #2d3a2f;
+      --gray-800: #1e2a20;
+      --white: #ffffff;
+      --shadow-sm: 0 8px 20px rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 20px 35px -10px rgba(0, 0, 0, 0.08);
+      --shadow-lg: 0 30px 50px -15px rgba(0, 0, 0, 0.12);
+      --radius-xl: 24px;
+      --radius-lg: 18px;
+      --radius-md: 14px;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--gray-50);
+      color: var(--gray-800);
+      line-height: 1.5;
+      scroll-behavior: smooth;
+    }
+
+    /* Navigation */
+    .navbar {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(12px);
+      z-index: 1000;
+      border-bottom: 1px solid rgba(30, 107, 59, 0.12);
+      padding: 0 5%;
+      transition: all 0.2s;
+    }
+
+    .nav-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 74px;
+    }
+
+    .logo-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-img {
+      height: 125px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .logo-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      letter-spacing: -0.3px;
+    }
+
+    .logo-text span {
+      color: var(--secondary);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 36px;
+      align-items: center;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.9rem;
+      color: var(--gray-700);
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--primary);
+    }
+
+    .nav-cta {
+      background: var(--primary);
+      color: white;
+      padding: 8px 22px;
+      border-radius: 40px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .nav-cta:hover {
+      background: var(--primary-light);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 14px rgba(30, 107, 59, 0.25);
+    }
+
+    /* Hero Section */
+    .hero {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #fef9e8 0%, #eef5ea 100%);
+      display: flex;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+      padding: 100px 5% 80px;
+    }
+
+    .hero-grid {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(30, 107, 59, 0.12);
+      backdrop-filter: blur(4px);
+      padding: 6px 18px;
+      border-radius: 40px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 24px;
+      letter-spacing: 0.3px;
+    }
+
+    .hero h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.8rem, 5.5vw, 4.5rem);
+      font-weight: 700;
+      line-height: 1.1;
+      color: var(--primary-dark);
+      margin-bottom: 24px;
+    }
+
+    .hero h1 em {
+      color: var(--secondary);
+      font-style: normal;
+      position: relative;
+    }
+
+    .hero-desc {
+      font-size: 1.05rem;
+      color: #3a4a3c;
+      max-width: 500px;
+      margin-bottom: 36px;
+      line-height: 1.6;
+    }
+
+    .hero-stats {
+      display: flex;
+      gap: 32px;
+      margin-top: 40px;
+    }
+
+    .stat-block h3 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+    }
+
+    .stat-block p {
+      font-size: 0.8rem;
+      color: #5b6e5f;
+      font-weight: 500;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+      padding: 12px 32px;
+      border-radius: 40px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(30, 107, 59, 0.3);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-light);
+      transform: translateY(-2px);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1.5px solid var(--primary);
+      color: var(--primary);
+      padding: 12px 32px;
+      border-radius: 40px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: 0.2s;
+    }
+
+    .btn-outline:hover {
+      background: rgba(30, 107, 59, 0.05);
+      transform: translateY(-2px);
+    }
+
+    /* Hero Image Placeholder */
+    .hero-image img {
+      width: 100%;
+      max-width: 560px;
+      border-radius: 32px;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+
+    .hero-image img:hover {
+      transform: scale(1.01);
+    }
+
+    /* Sections common */
+    .section {
+      padding: 100px 5%;
+    }
+
+    .container {
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+
+    .section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 700;
+      color: var(--primary-dark);
+      margin-bottom: 16px;
+    }
+
+    .section-subtitle {
+      color: #5b6e5f;
+      max-width: 680px;
+      margin: 0 auto 48px auto;
+      font-size: 1.05rem;
+    }
+
+    .grid-2col {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 32px;
+    }
+
+    .card {
+      background: var(--white);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-sm);
+      padding: 32px;
+      transition: all 0.3s;
+      border: 1px solid rgba(30, 107, 59, 0.08);
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--shadow-md);
+      border-color: rgba(30, 107, 59, 0.2);
+    }
+
+    /* Problem cards */
+    .problem-icon {
+      width: 52px;
+      height: 52px;
+      background: #fef3e8;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      color: var(--secondary);
+    }
+
+    .solution-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 28px;
+    }
+
+    .solution-card {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 32px 24px;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+      transition: 0.25s;
+    }
+
+    /* lead form */
+    .lead-section {
+      background: linear-gradient(115deg, var(--primary-dark) 0%, #103a21 100%);
+      color: white;
+    }
+
+    .form-card {
+      background: var(--white);
+      border-radius: var(--radius-xl);
+      padding: 40px;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .wa-btn {
+      background: #25D366;
+      color: white;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 28px;
+      border-radius: 60px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: 0.2s;
+    }
+
+    .wa-btn:hover {
+      background: #1ebe5a;
+      transform: translateY(-2px);
+    }
+
+    /* Footer - Redesigned Professional Layout */
+    .footer {
+      background: var(--primary-dark);
+      color: #cddfd0;
+      padding: 64px 5% 32px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .footer-container {
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1.2fr 1.5fr 1fr;
+      gap: 48px;
+      margin-bottom: 48px;
+    }
+
+    .footer-brand .footer-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .footer-logo-img {
+      height: 125px;
+      width: auto;
+    }
+
+    .footer-brand-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: white;
+      letter-spacing: -0.3px;
+    }
+
+    .footer-brand-text span {
+      color: var(--accent-gold);
+    }
+
+    .footer-description {
+      color: #b8cfc2;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      margin-bottom: 24px;
+      max-width: 280px;
+    }
+
+    .footer-social {
+      display: flex;
+      gap: 20px;
+    }
+
+    .footer-social a {
+      color: #b8cfc2;
+      font-size: 1.25rem;
+      transition: all 0.2s;
+      background: rgba(255, 255, 255, 0.08);
+      width: 36px;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+    }
+
+    .footer-social a:hover {
+      color: var(--accent-gold);
+      background: rgba(230, 179, 66, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .footer-column h4 {
+      color: white;
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      margin-bottom: 24px;
+      position: relative;
+      display: inline-block;
+    }
+
+    .footer-column h4:after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 0;
+      width: 32px;
+      height: 2px;
+      background: var(--accent-gold);
+    }
+
+    .footer-column ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .footer-column ul li {
+      margin-bottom: 14px;
+    }
+
+    .footer-column ul li a {
+      color: #b8cfc2;
+      text-decoration: none;
+      font-size: 0.85rem;
+      transition: color 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .footer-column ul li a i {
+      font-size: 0.8rem;
+      width: 20px;
+      color: var(--accent-gold);
+    }
+
+    .footer-column ul li a:hover {
+      color: var(--accent-gold);
+      transform: translateX(2px);
+    }
+
+    .footer-bottom {
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding-top: 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 0.8rem;
+    }
+
+    .footer-copyright {
+      color: #8aa698;
+    }
+
+    .footer-legal {
+      display: flex;
+      gap: 24px;
+    }
+
+    .footer-legal a {
+      color: #8aa698;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer-legal a:hover {
+      color: var(--accent-gold);
+    }
+
+    .footer-contact-row {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .footer-contact-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #b8cfc2;
+      font-size: 0.85rem;
+    }
+
+    .footer-contact-item i {
+      width: 24px;
+      color: var(--accent-gold);
+    }
+
+    /* Responsive footer */
+    @media (max-width: 1024px) {
+      .footer-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 40px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .footer-grid {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+
+      .footer-column h4:after {
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+      .footer-social {
+        justify-content: center;
+      }
+
+      .footer-description {
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .footer-contact-item {
+        justify-content: center;
+      }
+
+      .footer-bottom {
+        flex-direction: column;
+        text-align: center;
+      }
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+
+      .hero-desc {
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .hero-stats {
+        justify-content: center;
+      }
+
+      .btn-group {
+        justify-content: center;
+      }
+
+      .solution-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .grid-2col {
+        grid-template-columns: 1fr;
+      }
+
+      .nav-links {
+        display: none;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .solution-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-image img {
+        max-width: 100%;
+      }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.7s, transform 0.7s;
+    }
+
+    .reveal.in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .badge-gold {
+      background: rgba(200, 122, 31, 0.1);
+      color: var(--secondary);
+    }
+  </style>
+</head>
+
+<body>
+
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="logo-wrapper">
+        <!-- Custom Logo from uploaded file "Farm Vantara Logo.png" -->
+        <img class="logo-img" src="./Farm Vantara Logo.svg" alt="Farm Vantara Logo">
+      </div>
+      <div class="nav-links">
+        <a href="">Home</a>
+        <a href="#promise">Our Promise</a>
+        <a href="#problem">Problem</a>
+        <a href="#solution">Solution</a>
+        <a href="#benefits">Benefits</a>
+        <a href="#howitworks">How it works</a>
+        <a href="#join" class="nav-cta">Join Now</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-grid container">
+      <div class="hero-content">
+        <div class="hero-badge">
+          <i class="fas fa-seedling" style="font-size: 12px;"></i> Empowering Indian Agriculture
+        </div>
+        <h1>Connecting Farmers <em>Directly</em> to Markets</h1>
+        <p class="hero-desc">Farm Vantara eliminates middlemen, ensures fair pricing, and builds a transparent ecosystem
+          where farmers and vendors thrive together.</p>
+        <div class="btn-group">
+          <a href="#join" class="btn-primary"><i class="fas fa-tractor"></i> Join as Farmer</a>
+          <a href="#join" class="btn-outline"><i class="fas fa-store"></i> Join as Vendor</a>
+        </div>
+        <div class="hero-stats">
+          <div class="stat-block">
+            <h3>100%</h3>
+            <p>Direct Trade</p>
+          </div>
+          <div class="stat-block">
+            <h3>0%</h3>
+            <p>Middlemen</p>
+          </div>
+          <div class="stat-block">
+            <h3>Fair</h3>
+            <p>Pricing Always</p>
+          </div>
+        </div>
+      </div>
+      <div class="hero-image">
+        <!-- Image placeholder - professional farm-market visual -->
+        <img src="./Farm Vantara Logo.png" alt="Farmers selling directly to vendors - Farm Vantara">
+      </div>
+    </div>
+  </section>
+
+  <!-- Trust Section -->
+  <section class="section" id="promise">
+    <div class="container">
+      <div style="text-align: center;" class="reveal">
+        <div class="hero-badge" style="margin:0 auto 16px;">Our Promise</div>
+        <h2 class="section-title">Why Farm Vantara</h2>
+        <p class="section-subtitle">Fair, direct & transparent agricultural trade.</p>
+      </div>
+      <div class="solution-grid">
+        <div class="solution-card reveal"><i class="fas fa-hand-holding-usd fa-2x" style="color: var(--secondary);"></i>
+          <h4>Zero Middlemen</h4>
+          <p>No commissions lost, trade flows directly.</p>
+        </div>
+        <div class="solution-card reveal"><i class="fas fa-chart-line fa-2x" style="color: var(--secondary);"></i>
+          <h4>Transparent Pricing</h4>
+          <p>Full market clarity, zero hidden costs.</p>
+        </div>
+        <div class="solution-card reveal"><i class="fas fa-users fa-2x" style="color: var(--secondary);"></i>
+          <h4>Farmer-First</h4>
+          <p>Maximize income & dignity for farmers.</p>
+        </div>
+        <div class="solution-card reveal"><i class="fas fa-lock fa-2x" style="color: var(--secondary);"></i>
+          <h4>Reliable & Secure</h4>
+          <p>Enterprise-grade security you can trust.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Problem Section -->
+  <section id="problem" class="section">
+    <div class="container">
+      <div style="text-align: center;" class="reveal">
+        <div class="hero-badge" style="background:#eef2ec; margin:0 auto 16px; width:fit-content;">The Challenge</div>
+        <h2 class="section-title">A Broken Agricultural Chain</h2>
+        <p class="section-subtitle">Farmers lose income and vendors face unreliable supply because of unnecessary
+          intermediaries.</p>
+      </div>
+      <div class="grid-2col">
+        <div class="card reveal">
+          <div class="problem-icon"><i class="fas fa-tractor fa-2x"></i></div>
+          <h3 style="font-family: 'Cormorant Garamond'; font-size:1.6rem;">Farmers Are Losing Out</h3>
+          <ul style="list-style: none; margin-top: 20px;">
+            <li style="display:flex; gap:12px; margin-bottom:16px;"><i class="fas fa-times-circle"
+                style="color:#c0392b;"></i> No direct access to buyers</li>
+            <li style="display:flex; gap:12px; margin-bottom:16px;"><i class="fas fa-times-circle"
+                style="color:#c0392b;"></i> Low prices due to multiple middlemen</li>
+            <li style="display:flex; gap:12px;"><i class="fas fa-times-circle" style="color:#c0392b;"></i> Delayed &
+              unfair payments</li>
+          </ul>
+        </div>
+        <div class="card reveal">
+          <div class="problem-icon"><i class="fas fa-chart-line fa-2x"></i></div>
+          <h3 style="font-family: 'Cormorant Garamond'; font-size:1.6rem;">Vendors Struggle Too</h3>
+          <ul style="list-style: none; margin-top: 20px;">
+            <li style="display:flex; gap:12px; margin-bottom:16px;"><i class="fas fa-times-circle"
+                style="color:#c0392b;"></i> Inconsistent supply chains</li>
+            <li style="display:flex; gap:12px; margin-bottom:16px;"><i class="fas fa-times-circle"
+                style="color:#c0392b;"></i> Quality issues & no traceability</li>
+            <li style="display:flex; gap:12px;"><i class="fas fa-times-circle" style="color:#c0392b;"></i> Inflated
+              costs from intermediaries</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Solution Section -->
+  <section id="solution" class="section" style="background: var(--gray-100);">
+    <div class="container">
+      <div style="text-align: center;" class="reveal">
+        <div class="hero-badge" style="background:#e6d5b8; margin:0 auto 16px;">Our Platform</div>
+        <h2 class="section-title">Introducing Farm Vantara</h2>
+        <p class="section-subtitle">A transparent, fair trading system — reconnecting growers with buyers.</p>
+      </div>
+      <div class="solution-grid">
+        <div class="solution-card reveal"><i class="fas fa-handshake fa-2x"
+            style="color: var(--primary); margin-bottom: 20px;"></i>
+          <h4>Direct Connection</h4>
+          <p style="color:#5a6b5e;">Farmers & buyers connect instantly, zero layers.</p>
+        </div>
+        <div class="solution-card reveal"><i class="fas fa-chart-simple fa-2x"
+            style="color: var(--primary); margin-bottom: 20px;"></i>
+          <h4>Transparent Pricing</h4>
+          <p>Visible, verified & fair for all parties.</p>
+        </div>
+        <div class="solution-card reveal"><i class="fas fa-bolt fa-2x"
+            style="color: var(--primary); margin-bottom: 20px;"></i>
+          <h4>Fast Transactions</h4>
+          <p>Quick deal-closing & reliable settlements.</p>
+        </div>
+        <div class="solution-card reveal"><i class="fas fa-shield-alt fa-2x"
+            style="color: var(--primary); margin-bottom: 20px;"></i>
+          <h4>Secure Platform</h4>
+          <p>Trusted infrastructure built for agri-community.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Benefits Section -->
+  <section id="benefits" class="section">
+    <div class="container">
+      <div style="text-align: center;" class="reveal">
+        <div class="hero-badge" style="margin:0 auto 16px;">Why Join Us</div>
+        <h2 class="section-title">Built for Both Sides of Trade</h2>
+        <p class="section-subtitle">Designed to make farming and procurement more profitable.</p>
+      </div>
+      <div class="grid-2col">
+        <div class="card reveal" style="border-top: 4px solid var(--primary);"><i class="fas fa-leaf fa-2x"
+            style="color: var(--primary);"></i>
+          <h3 style="margin: 16px 0;">For Farmers</h3>
+          <ul style="list-style: none;">
+            <li style="margin-bottom:12px;">✔ Better Crop Prices</li>
+            <li style="margin-bottom:12px;">✔ Sell Directly to Buyers</li>
+            <li style="margin-bottom:12px;">✔ Timely Payments</li>
+            <li>✔ Access Larger Markets</li>
+          </ul>
+        </div>
+        <div class="card reveal" style="border-top: 4px solid var(--secondary);"><i class="fas fa-building fa-2x"
+            style="color: var(--secondary);"></i>
+          <h3 style="margin: 16px 0;">For Vendors & Businesses</h3>
+          <ul style="list-style: none;">
+            <li style="margin-bottom:12px;">✔ Source from Farmers Directly</li>
+            <li style="margin-bottom:12px;">✔ Consistent Quality & Supply</li>
+            <li style="margin-bottom:12px;">✔ Fair & Transparent Pricing</li>
+            <li>✔ Efficient Procurement</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section id="howitworks" class="section" style="background: var(--gray-100);">
+    <div class="container">
+      <div style="text-align: center;" class="reveal">
+        <div class="hero-badge" style="margin:0 auto 16px;">Simple Process</div>
+        <h2 class="section-title">Three Steps to Direct Trade</h2>
+        <p class="section-subtitle">Start connecting & trading in minutes.</p>
+      </div>
+      <div class="solution-grid" style="margin-top: 40px;">
+        <div class="solution-card reveal"><span
+            style="background: var(--primary); color:white; width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; border-radius:60px; margin-bottom: 16px;">1</span>
+          <h4>Register</h4>
+          <p>Create free account as farmer or vendor in 2 min.</p>
+        </div>
+        <div class="solution-card reveal"><span
+            style="background: var(--primary); color:white; width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; border-radius:60px; margin-bottom: 16px;">2</span>
+          <h4>List or Browse</h4>
+          <p>Post produce or browse verified farmers' crops.</p>
+        </div>
+        <div class="solution-card reveal"><span
+            style="background: var(--primary); color:white; width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; border-radius:60px; margin-bottom: 16px;">3</span>
+          <h4>Trade Directly</h4>
+          <p>Connect, negotiate & close deals transparently.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Lead Capture + WhatsApp Form Validation -->
+  <section id="join" class="lead-section section">
+    <div class="container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;">
+      <div class="reveal">
+        <div class="hero-badge" style="background: rgba(255,215,130,0.2); color:#f5cf7b;">Get Started Today</div>
+        <h2 class="section-title" style="color: white;">Join Farm Vantara</h2>
+        <p style="color: #cfe3d4; margin-bottom: 28px;">Be part of a growing network transforming agriculture — fair,
+          fast, direct.</p>
+        <a href="https://wa.me/919491483933?text=Hello%20Farm%20Vantara%2C%20I%20want%20to%20join%20as%20a%20Farmer%2FVendor.%20Please%20share%20more%20details."
+          class="wa-btn" target="_blank"><i class="fab fa-whatsapp fa-lg"></i> Join via WhatsApp · +91 9491483933</a>
+        <div style="margin: 24px 0 12px; display: flex; gap: 12px; flex-wrap: wrap;"><span
+            style="background: rgba(255,255,255,0.12); padding: 5px 14px; border-radius: 40px;">✓ Free to
+            join</span><span style="background: rgba(255,255,255,0.12); padding: 5px 14px; border-radius: 40px;">✓ No
+            hidden fees</span><span
+            style="background: rgba(255,255,255,0.12); padding: 5px 14px; border-radius: 40px;">✓ Farmer-first</span>
+        </div>
+      </div>
+      <div class="form-card reveal">
+        <h3 style="font-family: 'Cormorant Garamond'; font-size: 1.8rem; color: var(--primary-dark);">Create Your
+          Account</h3>
+        <p style="margin-bottom: 28px; color: #5b6e5f;">Join thousands of farmers & vendors</p>
+        <form id="leadForm">
+          <div style="margin-bottom: 18px;"><label style="font-weight: 600;">Full Name *</label><input type="text"
+              id="fullName" class="form-input"
+              style="width:100%; padding:12px; border:1px solid #ddd; border-radius: 12px; margin-top:6px;"
+              placeholder="Enter full name"></div>
+          <div style="margin-bottom: 18px;"><label style="font-weight: 600;">Phone Number *</label><input type="tel"
+              id="phoneNum" class="form-input"
+              style="width:100%; padding:12px; border:1px solid #ddd; border-radius: 12px;"
+              placeholder="+91 XXXXX XXXXX"></div>
+          <div style="margin-bottom: 18px;"><label style="font-weight: 600;">I am joining as *</label>
+            <div style="display: flex; gap: 12px; margin-top: 8px;">
+              <button type="button" id="roleFarmerBtn" class="role-toggle active"
+                style="flex:1; padding: 12px; border-radius: 40px; border:1px solid var(--primary); background: var(--primary); color:white; font-weight:600;">🌾
+                Farmer</button>
+              <button type="button" id="roleVendorBtn" class="role-toggle"
+                style="flex:1; padding: 12px; border-radius: 40px; border:1px solid #ccc; background:white; color:#333; font-weight:600;">🏢
+                Vendor</button>
+            </div>
+          </div>
+          <input type="hidden" id="selectedRole" value="farmer">
+          <button type="submit" class="btn-primary" style="width:100%; justify-content:center; margin-top: 8px;">Join
+            Farm Vantara →</button>
+        </form>
+        <p style="font-size:0.75rem; text-align:center; margin-top: 18px;">By joining, you agree to our terms. Data is
+          safe & never shared.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Final CTA -->
+  <section style="background: var(--accent-gold); padding: 80px 5%; text-align: center;">
+    <div>
+      <div class="hero-badge" style="background: #fff3e0; margin:0 auto 20px;">Together We Grow</div>
+      <h2 class="section-title" style="color: var(--primary-dark);">Let's Grow Together</h2>
+      <p style="max-width: 600px; margin: 0 auto 32px; color:#3e3a2b;">Whether you are a farmer or a vendor, Farm
+        Vantara helps you achieve fair and direct trade at scale.</p>
+      <div style="display: flex; gap: 20px; justify-content: center;"><a href="#join" class="btn-primary"
+          style="background: var(--primary-dark);">Join as Farmer</a><a href="#join" class="btn-outline"
+          style="border-color: var(--primary-dark); color: var(--primary-dark);">Start Trading Directly</a></div>
+    </div>
+  </section>
+
+  <!-- Footer - Redesigned Professional Layout -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-grid">
+        <!-- Brand Column -->
+        <div class="footer-brand">
+          <div class="footer-logo">
+            <img class="footer-logo-img" src="./Farm Vantara Logo.svg" alt="Farm Vantara Logo">
+            
+          </div>
+          <p class="footer-description">Bridging Farms to Markets — transparent, fair agricultural ecosystem for India.
+          </p>
+          <div class="footer-social">
+            <a href="https://www.facebook.com/share/1AzHJHZAYX/" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+            <a href="https://www.instagram.com/farm_vantara_india?igsh=MWp6OXp6dW0yaTkzcQ==" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="https://wa.me/919491483933?text=Hello%20Farm%20Vantara%2C%20I%20want%20to%20join%20as%20a%20Farmer%2FVendor.%20Please%20share%20more%20details." aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+            <a href="https://www.linkedin.com/company/110879849" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+          </div>
+        </div>
+
+        <!-- Platform Column -->
+        <div class="footer-column">
+          <h4>Platform</h4>
+          <ul>
+            <li><a href="#problem"><i class="fas fa-chevron-right"></i> The Problem</a></li>
+            <li><a href="#solution"><i class="fas fa-chevron-right"></i> Our Solution</a></li>
+            <li><a href="#benefits"><i class="fas fa-chevron-right"></i> Benefits</a></li>
+            <li><a href="#howitworks"><i class="fas fa-chevron-right"></i> How It Works</a></li>
+            <li><a href="#promise"><i class="fas fa-chevron-right"></i> Our Promise</a></li>
+          </ul>
+        </div>
+
+        <!-- Contact Column -->
+        <div class="footer-column">
+          <h4>Contact</h4>
+          <div class="footer-contact-row">
+            <div class="footer-contact-item">
+              <i class="fas fa-phone-alt"></i>
+              <span>+91 9491483933</span>
+            </div>
+            <div class="footer-contact-item">
+              <i class="fas fa-envelope"></i>
+              <span>info@farmvantara.com</span>
+            </div>
+            <div class="footer-contact-item">
+              <i class="fab fa-whatsapp"></i>
+              <span>WhatsApp Business</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Links Column -->
+        <div class="footer-column">
+          <h4>Resources</h4>
+          <ul>
+            <li><a href="#"><i class="fas fa-chevron-right"></i> Help Center</a></li>
+            <li><a href="#"><i class="fas fa-chevron-right"></i> Privacy Policy</a></li>
+            <li><a href="#"><i class="fas fa-chevron-right"></i> Terms of Service</a></li>
+            <li><a href="#"><i class="fas fa-chevron-right"></i> Farmer Resources</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Bottom Bar -->
+      <div class="footer-bottom">
+        <div class="footer-copyright">
+          © 2026 Farm Vantara. All rights reserved.
+        </div>
+        <div class="footer-legal">
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms of Use</a>
+          <a href="#">Cookie Policy</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Scroll reveal observer
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // Role toggle UI & hidden value
+    const farmerBtn = document.getElementById('roleFarmerBtn');
+    const vendorBtn = document.getElementById('roleVendorBtn');
+    const roleInput = document.getElementById('selectedRole');
+    function setRole(role) {
+      roleInput.value = role;
+      if (role === 'farmer') {
+        farmerBtn.classList.add('active');
+        farmerBtn.style.background = 'var(--primary)';
+        farmerBtn.style.color = 'white';
+        farmerBtn.style.borderColor = 'var(--primary)';
+        vendorBtn.classList.remove('active');
+        vendorBtn.style.background = 'white';
+        vendorBtn.style.color = '#333';
+        vendorBtn.style.borderColor = '#ccc';
+      } else {
+        vendorBtn.classList.add('active');
+        vendorBtn.style.background = 'var(--secondary)';
+        vendorBtn.style.color = 'white';
+        vendorBtn.style.borderColor = 'var(--secondary)';
+        farmerBtn.classList.remove('active');
+        farmerBtn.style.background = 'white';
+        farmerBtn.style.color = '#333';
+        farmerBtn.style.borderColor = '#ccc';
+      }
+    }
+    if (farmerBtn && vendorBtn) {
+      farmerBtn.addEventListener('click', () => setRole('farmer'));
+      vendorBtn.addEventListener('click', () => setRole('vendor'));
+    }
+    setRole('farmer');
+
+    // Form submission: Validate and send via WhatsApp
+    const form = document.getElementById('leadForm');
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const fullName = document.getElementById('fullName').value.trim();
+      const phone = document.getElementById('phoneNum').value.trim();
+      const role = document.getElementById('selectedRole').value;
+
+      if (!fullName || !phone) {
+        alert('Please fill in your name and phone number.');
+        return;
+      }
+      if (!/^\+?[0-9\s\-\(\)]{7,20}$/.test(phone)) {
+        alert('Please enter a valid phone number.');
+        return;
+      }
+
+      // Prepare WhatsApp message
+      const message = `Hello Farm Vantara,%0A*New Registration Request*%0A%0A*Name:* ${encodeURIComponent(fullName)}%0A*Phone:* ${encodeURIComponent(phone)}%0A*Joining as:* ${role === 'farmer' ? 'Farmer 🌾' : 'Vendor/Business 🏢'}%0A%0AI am interested to join the platform. Please guide me further.`;
+      const waNumber = '919491483933'; // updated contact
+      const waUrl = `https://wa.me/${waNumber}?text=${message}`;
+      window.open(waUrl, '_blank');
+
+      // Optional: show success message locally
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const originalText = submitBtn.innerText;
+      submitBtn.innerText = '✓ Redirecting to WhatsApp...';
+      submitBtn.disabled = true;
+      setTimeout(() => {
+        submitBtn.innerText = originalText;
+        submitBtn.disabled = false;
+        form.reset();
+        setRole('farmer');
+      }, 2000);
+    });
+  </script>
+</body>
+
+</html>
