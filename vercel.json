@@ -1,0 +1,15 @@
+{
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "farmvantara.com"
+        }
+      ],
+      "destination": "https://www.farmvantara.com/$1",
+      "permanent": true
+    }
+  ]
+}
