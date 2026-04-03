@@ -1,0 +1,14 @@
+# robots.txt for Farm Vantara
+# Allow all search engines to crawl the entire site
+
+User-agent: *
+Allow: /
+
+# Sitemap location - IMPORTANT for Google
+Sitemap: https://farmvantara.com/sitemap.xml
+
+# Disallow nothing - all pages should be indexed
+# (No Disallow lines means everything is allowed)
+
+# Crawl delay - be polite to search engines
+Crawl-delay: 1
