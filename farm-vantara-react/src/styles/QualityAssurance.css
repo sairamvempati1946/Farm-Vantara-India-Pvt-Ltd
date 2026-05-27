@@ -1,0 +1,1733 @@
+.quality-assurance-page {
+    --primary-green: #27ae60;
+    --dark-green: #219653;
+    --light-green: #6fcf97;
+    --accent-yellow: #f2c94c;
+    --accent-orange: #f2994a;
+    --dark-blue: #2d3436;
+    --light-gray: #f8f9fa;
+    --medium-gray: #dfe6e9;
+    --text-dark: #2d3436;
+    --text-light: #636e72;
+    --white: #ffffff;
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    --shadow-hover: 0 20px 40px rgba(0, 0, 0, 0.12);
+    --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+    --gradient-primary: linear-gradient(135deg, var(--primary-green) 0%, var(--dark-green) 100%);
+    --gradient-yellow: linear-gradient(135deg, #f2c94c 0%, #f2994a 100%);
+    --gradient-blue: linear-gradient(135deg, #2d9cdb 0%, #2f80ed 100%);
+    --gradient-quality: linear-gradient(135deg, #27ae60 0%, #2d9cdb 100%);
+    --gradient-certified: linear-gradient(135deg, #f2c94c 0%, #27ae60 100%);
+}
+
+@media (prefers-color-scheme: dark) {
+    .quality-assurance-page {
+        --text-dark: #ffffff;
+        --text-light: #b2bec3;
+        --white: #121212;
+        --light-gray: #1e1e1e;
+        --medium-gray: #2d3436;
+        --dark-blue: #000000;
+        --shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        --shadow-hover: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+}
+
+.quality-assurance-page * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.quality-assurance-page html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.quality-assurance-page body {
+    font-family: 'Open Sans', sans-serif;
+    line-height: 1.6;
+    color: var(--text-dark);
+    background-color: var(--white);
+    overflow-x: hidden;
+}
+
+.quality-assurance-page h1,
+.quality-assurance-page h2,
+.quality-assurance-page h3,
+.quality-assurance-page h4,
+.quality-assurance-page h5 {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.quality-assurance-page .container {
+    width: 100%;
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 0 30px;
+}
+
+.quality-assurance-page section {
+    padding: 100px 0;
+}
+
+/* Header */
+.quality-assurance-page .main-header {
+    background-color: var(--white);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    transition: var(--transition);
+}
+
+.quality-assurance-page .main-header.scrolled {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+.quality-assurance-page .navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+    transition: var(--transition);
+}
+
+.quality-assurance-page .main-header.scrolled .navbar {
+    padding: 10px 0;
+}
+
+.quality-assurance-page .logo {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    gap: 15px;
+    margin-right: 40px;
+}
+
+.quality-assurance-page .logo-img {
+    height: 75px;
+    width: 200px;
+    transition: var(--transition);
+}
+
+.quality-assurance-page .main-header.scrolled .logo-img {
+    height: 45px;
+}
+
+.quality-assurance-page .nav-container {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    justify-content: space-between;
+}
+
+.quality-assurance-page .nav-menu {
+    display: flex;
+    list-style: none;
+    align-items: center;
+    gap: 5px;
+    margin: 0 auto;
+    padding: 0;
+}
+
+.quality-assurance-page .nav-item {
+    position: relative;
+}
+
+.quality-assurance-page .nav-item a {
+    text-decoration: none;
+    color: var(--text-dark);
+    font-weight: 600;
+    font-size: 15px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: var(--transition);
+    white-space: nowrap;
+}
+
+.quality-assurance-page .nav-item a:hover,
+.quality-assurance-page .nav-item a:focus {
+    color: var(--primary-green);
+    background: rgba(39, 174, 96, 0.08);
+    outline: none;
+}
+
+.quality-assurance-page .nav-item.active a {
+    color: var(--primary-green);
+    background: rgba(39, 174, 96, 0.1);
+}
+
+.quality-assurance-page .nav-item.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 70%;
+    height: 3px;
+    background: var(--gradient-primary);
+    border-radius: 3px;
+}
+
+/* Auth Buttons */
+.quality-assurance-page .auth-buttons {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: 30px;
+}
+
+.quality-assurance-page .btn-login,
+.quality-assurance-page .btn-register {
+    padding: 10px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: var(--transition);
+    border: 2px solid transparent;
+}
+
+.quality-assurance-page .btn-login {
+    color: var(--primary-green);
+    border-color: var(--primary-green);
+    background: transparent;
+}
+
+.quality-assurance-page .btn-login:hover {
+    background: var(--primary-green);
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(39, 174, 96, 0.2);
+}
+
+.quality-assurance-page .btn-register {
+    background: var(--gradient-primary);
+    color: white;
+}
+
+.quality-assurance-page .btn-register:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 15px 30px rgba(39, 174, 96, 0.3);
+}
+
+.quality-assurance-page .mobile-menu-btn {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: var(--primary-green);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: var(--transition);
+    margin-left: 15px;
+}
+
+/* ENHANCED Quality Hero Section - Elegant Orbital Animation */
+.quality-assurance-page .quality-hero {
+    background: linear-gradient(135deg, #e8f5e9 0%, #e3f2fd 100%);
+    padding: 120px 0 80px;
+    position: relative;
+    overflow: hidden;
+    min-height: 90vh;
+    display: flex;
+    align-items: center;
+}
+
+.quality-assurance-page .quality-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 10% 20%, rgba(39, 174, 96, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 90% 80%, rgba(45, 156, 219, 0.08) 0%, transparent 50%);
+}
+
+.quality-assurance-page .quality-hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 60px;
+    width: 100%;
+}
+
+.quality-assurance-page .hero-text-content {
+    flex: 1;
+    max-width: 600px;
+    text-align: left;
+    animation: fadeInLeft 1s ease-out 0.3s both;
+}
+
+.quality-assurance-page .hero-visual-content {
+    flex: 1;
+    max-width: 600px;
+    animation: fadeInRight 1s ease-out 0.6s both;
+}
+
+.quality-assurance-page .quality-hero-title {
+    font-size: 3.5rem;
+    margin-bottom: 25px;
+    line-height: 1.1;
+    background: var(--gradient-quality);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.quality-assurance-page .quality-hero-title::after {
+    content: '';
+    position: absolute;
+    bottom: -15px;
+    left: 0;
+    width: 150px;
+    height: 5px;
+    background: var(--gradient-quality);
+    border-radius: 5px;
+    animation: expandWidth 1.2s ease-out 0.5s both;
+}
+
+.quality-assurance-page .quality-hero-subtitle {
+    font-size: 1.2rem;
+    color: var(--text-light);
+    margin: 40px 0 50px;
+    line-height: 1.8;
+    font-weight: 500;
+}
+
+/* Elegant Orbital Quality Visualization */
+.quality-assurance-page .quality-visualization {
+    position: relative;
+    height: 400px;
+    margin: 0;
+    animation: fadeIn 1.2s ease-out 0.9s both;
+}
+
+.quality-assurance-page .visualization-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.quality-assurance-page .orbital-system {
+    position: relative;
+    width: 380px;
+    height: 380px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.quality-assurance-page .central-certification {
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    background: var(--gradient-certified);
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    z-index: 10;
+    box-shadow: 0 20px 40px rgba(242, 201, 76, 0.3);
+    animation: pulseCentral 4s infinite;
+}
+
+.quality-assurance-page .central-certification i {
+    font-size: 40px;
+    margin-bottom: 10px;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+}
+
+.quality-assurance-page .central-text {
+    font-size: 16px;
+    font-weight: 700;
+    text-align: center;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.quality-assurance-page .orbital-path {
+    position: absolute;
+    border: 2px dashed rgba(39, 174, 96, 0.3);
+    border-radius: 50%;
+}
+
+.quality-assurance-page .orbital-path-1 {
+    width: 280px;
+    height: 280px;
+    animation: rotateOrbit 40s linear infinite;
+}
+
+.quality-assurance-page .orbital-path-2 {
+    width: 200px;
+    height: 200px;
+    animation: rotateOrbit 30s linear infinite reverse;
+}
+
+.quality-assurance-page .orbital-stage {
+    position: absolute;
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    z-index: 5;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+    text-align: center;
+    padding: 10px;
+    transition: all 0.5s ease;
+    animation: floatStage 6s ease-in-out infinite;
+}
+
+.quality-assurance-page .orbital-stage i {
+    font-size: 28px;
+    margin-bottom: 5px;
+    transition: transform 0.5s ease;
+}
+
+/* Stage 1: Farm Verification */
+.quality-assurance-page .stage-1 {
+    background: var(--gradient-primary);
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation-delay: 0s;
+}
+
+/* Stage 2: Quality Inspection */
+.quality-assurance-page .stage-2 {
+    background: var(--gradient-blue);
+    right: 0;
+    top: 50%;
+    transform: translate(50%, -50%);
+    animation-delay: 1.5s;
+}
+
+/* Stage 3: Certification */
+.quality-assurance-page .stage-3 {
+    background: var(--gradient-yellow);
+    bottom: 0;
+    left: 50%;
+    transform: translate(-50%, 50%);
+    animation-delay: 3s;
+}
+
+.quality-assurance-page .connecting-line {
+    position: absolute;
+    background: linear-gradient(90deg, var(--primary-green), #2d9cdb, var(--accent-yellow));
+    height: 4px;
+    border-radius: 2px;
+    z-index: 1;
+    animation: lineGlow 3s infinite alternate;
+}
+
+.quality-assurance-page .line-1 {
+    width: 140px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(0deg);
+    transform-origin: left center;
+}
+
+.quality-assurance-page .line-2 {
+    width: 140px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(120deg);
+    transform-origin: left center;
+}
+
+.quality-assurance-page .line-3 {
+    width: 140px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(240deg);
+    transform-origin: left center;
+}
+
+.quality-assurance-page .hero-stats {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 50px;
+    gap: 20px;
+}
+
+.quality-assurance-page .hero-stat-item {
+    text-align: center;
+    flex: 1;
+}
+
+.quality-assurance-page .hero-stat-number {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--dark-green);
+    display: block;
+    line-height: 1;
+    margin-bottom: 8px;
+}
+
+.quality-assurance-page .hero-stat-label {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    font-weight: 600;
+}
+
+/* Section Header */
+.quality-assurance-page .section-header {
+    text-align: center;
+    margin-bottom: 80px;
+    position: relative;
+}
+
+.quality-assurance-page .section-title {
+    font-size: 2.8rem;
+    color: var(--text-dark);
+    margin-bottom: 20px;
+    display: inline-block;
+    position: relative;
+}
+
+.quality-assurance-page .section-title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 5px;
+    background: var(--gradient-quality);
+    border-radius: 5px;
+}
+
+.quality-assurance-page .section-subtitle {
+    font-size: 1.1rem;
+    color: var(--text-light);
+    max-width: 700px;
+    margin: 0 auto;
+    font-weight: 500;
+}
+
+/* ENHANCED 3-Tier Process Section - Cards in Single Line */
+.quality-assurance-page .tier-process-section {
+    background: var(--white);
+    position: relative;
+}
+
+.quality-assurance-page .tiers-container {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 60px;
+    position: relative;
+}
+
+.quality-assurance-page .tier-card {
+    background: white;
+    border-radius: 20px;
+    padding: 40px 30px;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+    flex: 1;
+    min-height: 580px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.quality-assurance-page .tier-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: var(--gradient-quality);
+}
+
+.quality-assurance-page .tier-card:hover {
+    transform: translateY(-15px);
+    box-shadow: var(--shadow-hover);
+}
+
+.quality-assurance-page .tier-icon {
+    width: 90px;
+    height: 90px;
+    background: rgba(39, 174, 96, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 10px auto 25px;
+    color: var(--primary-green);
+    font-size: 36px;
+    transition: var(--transition);
+}
+
+.quality-assurance-page .tier-card:hover .tier-icon {
+    background: var(--gradient-quality);
+    color: white;
+    transform: scale(1.1);
+}
+
+.quality-assurance-page .tier-title {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    color: var(--text-dark);
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.quality-assurance-page .tier-description {
+    color: var(--text-light);
+    line-height: 1.7;
+    margin-bottom: 25px;
+    font-size: 0.95rem;
+}
+
+.quality-assurance-page .tier-features {
+    list-style: none;
+    text-align: left;
+    margin-top: auto;
+    width: 100%;
+}
+
+.quality-assurance-page .tier-features li {
+    margin-bottom: 10px;
+    padding-left: 25px;
+    position: relative;
+    color: var(--text-light);
+    line-height: 1.5;
+    font-size: 0.9rem;
+}
+
+.quality-assurance-page .tier-features li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--primary-green);
+    font-weight: bold;
+}
+
+/* ENHANCED Quality Standards Section - Cards in Single Line */
+.quality-assurance-page .standards-section {
+    background: var(--light-gray);
+}
+
+.quality-assurance-page .standards-container {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 60px;
+    flex-wrap: wrap;
+}
+
+.quality-assurance-page .standard-card {
+    background: white;
+    border-radius: 20px;
+    padding: 35px 30px;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+    flex: 1;
+    min-width: 300px;
+    max-width: 400px;
+    min-height: 420px;
+    display: flex;
+    flex-direction: column;
+}
+
+.quality-assurance-page .standard-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--gradient-quality);
+    opacity: 0;
+    transition: var(--transition);
+    z-index: 1;
+}
+
+.quality-assurance-page .standard-card:hover::after {
+    opacity: 0.03;
+}
+
+.quality-assurance-page .standard-card:hover {
+    transform: translateY(-10px);
+    box-shadow: var(--shadow-hover);
+}
+
+.quality-assurance-page .standard-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 2;
+}
+
+.quality-assurance-page .standard-icon {
+    width: 65px;
+    height: 65px;
+    background: rgba(39, 174, 96, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-green);
+    font-size: 26px;
+    flex-shrink: 0;
+    transition: var(--transition);
+}
+
+.quality-assurance-page .standard-card:hover .standard-icon {
+    background: var(--gradient-quality);
+    color: white;
+}
+
+.quality-assurance-page .standard-title {
+    font-size: 1.4rem;
+    color: var(--text-dark);
+    margin: 0;
+}
+
+.quality-assurance-page .standard-description {
+    color: var(--text-light);
+    line-height: 1.6;
+    margin-bottom: 25px;
+    position: relative;
+    z-index: 2;
+    font-size: 0.95rem;
+    flex-grow: 1;
+}
+
+.quality-assurance-page .standard-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-top: auto;
+    position: relative;
+    z-index: 2;
+}
+
+.quality-assurance-page .metric-item {
+    background: rgba(39, 174, 96, 0.05);
+    padding: 12px;
+    border-radius: 10px;
+    text-align: center;
+    transition: var(--transition);
+}
+
+.quality-assurance-page .metric-item:hover {
+    background: rgba(39, 174, 96, 0.1);
+    transform: translateY(-3px);
+}
+
+.quality-assurance-page .metric-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-green);
+    display: block;
+    line-height: 1;
+}
+
+.quality-assurance-page .metric-label {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    margin-top: 5px;
+}
+
+/* Certification Section */
+.quality-assurance-page .certification-section {
+    background: var(--white);
+}
+
+.quality-assurance-page .certification-container {
+    display: flex;
+    align-items: center;
+    gap: 60px;
+    margin-top: 60px;
+}
+
+.quality-assurance-page .certification-visual {
+    flex: 1;
+    position: relative;
+    min-height: 500px;
+}
+
+.quality-assurance-page .certification-badge {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.quality-assurance-page .badge-circle {
+    width: 280px;
+    height: 280px;
+    background: var(--gradient-certified);
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: 0 30px 60px rgba(242, 201, 76, 0.3);
+    animation: pulseCertified 4s infinite;
+    position: relative;
+}
+
+.quality-assurance-page .badge-circle::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    right: -10px;
+    bottom: -10px;
+    background: var(--gradient-certified);
+    border-radius: 50%;
+    opacity: 0.3;
+    z-index: -1;
+    animation: pulseOuter 4s infinite;
+}
+
+.quality-assurance-page .badge-icon {
+    font-size: 65px;
+    margin-bottom: 20px;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+}
+
+.quality-assurance-page .badge-text {
+    font-size: 22px;
+    font-weight: 700;
+    text-align: center;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.quality-assurance-page .certification-content {
+    flex: 1;
+}
+
+.quality-assurance-page .certification-list {
+    list-style: none;
+}
+
+.quality-assurance-page .certification-item {
+    margin-bottom: 25px;
+    padding-left: 40px;
+    position: relative;
+}
+
+.quality-assurance-page .certification-item:last-child {
+    margin-bottom: 0;
+}
+
+.quality-assurance-page .certification-icon {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 30px;
+    height: 30px;
+    background: var(--gradient-quality);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+}
+
+.quality-assurance-page .certification-title {
+    font-size: 1.2rem;
+    margin-bottom: 8px;
+    color: var(--text-dark);
+}
+
+.quality-assurance-page .certification-description {
+    color: var(--text-light);
+    line-height: 1.6;
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+/* ENHANCED Benefits Section - Cards in Single Line */
+.quality-assurance-page .quality-benefits-section {
+    background: var(--light-gray);
+}
+
+.quality-assurance-page .benefits-grid {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 60px;
+    flex-wrap: wrap;
+}
+
+.quality-assurance-page .benefit-card {
+    background: white;
+    border-radius: 20px;
+    padding: 35px 25px;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    flex: 1;
+    min-width: 280px;
+    max-width: 350px;
+    min-height: 320px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.quality-assurance-page .benefit-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--gradient-quality);
+}
+
+.quality-assurance-page .benefit-card:hover {
+    transform: translateY(-10px);
+    box-shadow: var(--shadow-hover);
+}
+
+.quality-assurance-page .benefit-icon {
+    width: 75px;
+    height: 75px;
+    background: rgba(39, 174, 96, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    color: var(--primary-green);
+    font-size: 30px;
+    transition: var(--transition);
+}
+
+.quality-assurance-page .benefit-card:hover .benefit-icon {
+    background: var(--gradient-quality);
+    color: white;
+}
+
+.quality-assurance-page .benefit-title {
+    font-size: 1.3rem;
+    margin-bottom: 15px;
+    color: var(--text-dark);
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.quality-assurance-page .benefit-description {
+    color: var(--text-light);
+    line-height: 1.6;
+    margin: 0;
+    font-size: 0.95rem;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+}
+
+/* ===== STATS SECTION (FINAL HTML MATCH) ===== */
+
+.quality-assurance-page .quality-stats-section {
+    background: linear-gradient(135deg, #1e8449 0%, #21618c 100%) !important;
+    color: white;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Dark overlay for depth */
+.quality-assurance-page .quality-stats-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.25); /* darker than before */
+}
+
+/* Content above overlay */
+.quality-assurance-page .stats-content {
+    position: relative;
+    z-index: 1;
+}
+
+/* Grid layout */
+.quality-assurance-page .stats-grid {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-top: 60px;
+    flex-wrap: wrap;
+}
+
+/* Each stat */
+.quality-assurance-page .stat-item {
+    padding: 25px;
+    flex: 1;
+    min-width: 200px;
+    max-width: 250px;
+    text-align: center;
+}
+
+/* Numbers (bright white like HTML) */
+.quality-assurance-page .stat-number {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #ffffff !important;
+    display: block;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* Labels */
+.quality-assurance-page .stat-label {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 600;
+}
+/* CTA Section */
+.quality-assurance-page .quality-cta-section {
+    background: var(--white);
+}
+
+.quality-assurance-page .quality-cta-content {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.quality-assurance-page .quality-cta-title {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    color: var(--text-dark);
+}
+
+.quality-assurance-page .quality-cta-subtitle {
+    font-size: 1.1rem;
+    margin-bottom: 40px;
+    color: var(--text-light);
+}
+
+.quality-assurance-page .cta-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.quality-assurance-page .btn-quality-primary,
+.quality-assurance-page .btn-quality-secondary {
+    padding: 18px 35px;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    transition: var(--transition);
+    border: none;
+    cursor: pointer;
+}
+
+.quality-assurance-page .btn-quality-primary {
+    background: var(--gradient-quality);
+    color: white;
+}
+
+.quality-assurance-page .btn-quality-primary:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(39, 174, 96, 0.4);
+}
+
+.quality-assurance-page .btn-quality-secondary {
+    background: transparent;
+    color: var(--primary-green);
+    border: 2px solid var(--primary-green);
+}
+
+.quality-assurance-page .btn-quality-secondary:hover {
+    background: var(--primary-green);
+    color: white;
+    transform: translateY(-5px);
+}
+
+/* Floating Elements */
+.quality-assurance-page .floating-elements {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.quality-assurance-page .floating-element {
+    position: absolute;
+    color: rgba(39, 174, 96, 0.4);
+    opacity: 0.6;
+    animation: floatElement 15s infinite linear;
+    font-size: 22px;
+}
+
+.quality-assurance-page .floating-element:nth-child(1) { top: 15%; left: 10%; animation-delay: 0s; animation-duration: 20s; }
+.quality-assurance-page .floating-element:nth-child(2) { top: 25%; right: 15%; animation-delay: 2s; animation-duration: 18s; }
+.quality-assurance-page .floating-element:nth-child(3) { bottom: 30%; left: 20%; animation-delay: 4s; animation-duration: 22s; }
+.quality-assurance-page .floating-element:nth-child(4) { bottom: 20%; right: 10%; animation-delay: 6s; animation-duration: 19s; }
+.quality-assurance-page .floating-element:nth-child(5) { top: 40%; left: 30%; animation-delay: 8s; animation-duration: 21s; }
+
+/* Animations */
+@keyframes fadeInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes expandWidth {
+    from { width: 0; }
+    to { width: 150px; }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: translateY(-50%) scale(1); box-shadow: 0 10px 30px rgba(39, 174, 96, 0.3); }
+    50% { transform: translateY(-50%) scale(1.1); box-shadow: 0 15px 40px rgba(39, 174, 96, 0.4); }
+}
+
+@keyframes pulseCertified {
+    0%, 100% { transform: scale(1); box-shadow: 0 30px 60px rgba(242, 201, 76, 0.3); }
+    50% { transform: scale(1.05); box-shadow: 0 40px 80px rgba(242, 201, 76, 0.4); }
+}
+
+@keyframes pulseOuter {
+    0%, 100% { transform: scale(1); opacity: 0.3; }
+    50% { transform: scale(1.1); opacity: 0.5; }
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+}
+
+@keyframes floatElement {
+    0% { transform: translateY(0) rotate(0deg); }
+    100% { transform: translateY(-100px) rotate(360deg); }
+}
+
+@keyframes pathGlow {
+    0%, 100% { box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3); }
+    50% { box-shadow: 0 5px 25px rgba(39, 174, 96, 0.5); }
+}
+
+/* New Hero Animations */
+@keyframes rotateOrbit {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes floatStage {
+    0%, 100% { 
+        transform: translate(-50%, -50%) scale(1);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+    }
+    50% { 
+        transform: translate(-50%, -50%) scale(1.05);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+    }
+}
+
+@keyframes pulseCentral {
+    0%, 100% { 
+        transform: scale(1);
+        box-shadow: 0 20px 40px rgba(242, 201, 76, 0.3);
+    }
+    50% { 
+        transform: scale(1.05);
+        box-shadow: 0 30px 60px rgba(242, 201, 76, 0.4);
+    }
+}
+
+@keyframes lineGlow {
+    0%, 100% { 
+        opacity: 0.7;
+        box-shadow: 0 0 10px rgba(39, 174, 96, 0.3);
+    }
+    50% { 
+        opacity: 1;
+        box-shadow: 0 0 20px rgba(39, 174, 96, 0.5);
+    }
+}
+
+/* Stage-specific animations */
+@keyframes orbitStage1 {
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg) translateX(140px) rotate(0deg);
+    }
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg) translateX(140px) rotate(-360deg);
+    }
+}
+
+@keyframes orbitStage2 {
+    0% {
+        transform: translate(-50%, -50%) rotate(120deg) translateX(140px) rotate(-120deg);
+    }
+    100% {
+        transform: translate(-50%, -50%) rotate(480deg) translateX(140px) rotate(-480deg);
+    }
+}
+
+@keyframes orbitStage3 {
+    0% {
+        transform: translate(-50%, -50%) rotate(240deg) translateX(140px) rotate(-240deg);
+    }
+    100% {
+        transform: translate(-50%, -50%) rotate(600deg) translateX(140px) rotate(-600deg);
+    }
+}
+
+/* Footer */
+.quality-assurance-page .main-footer {
+    background-color: var(--dark-blue);
+    color: #b2bec3;
+    padding-top: 80px;
+    position: relative;
+}
+
+.quality-assurance-page .footer-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 60px;
+    margin-bottom: 50px;
+}
+
+.quality-assurance-page .footer-logo-img {
+    height: 45px;
+    width: auto;
+    margin-bottom: 20px;
+}
+
+.quality-assurance-page .footer-description {
+    margin-bottom: 30px;
+    line-height: 1.8;
+}
+
+.quality-assurance-page .social-links {
+    display: flex;
+    gap: 15px;
+}
+
+.quality-assurance-page .social-links a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    background-color: rgba(255, 255, 255, 0.08);
+    border-radius: 50%;
+    color: white;
+    text-decoration: none;
+    font-size: 17px;
+    transition: var(--transition);
+}
+
+.quality-assurance-page .social-links a:hover {
+    background-color: var(--primary-green);
+    transform: translateY(-5px);
+}
+
+.quality-assurance-page .footer-title {
+    color: white;
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+    position: relative;
+    padding-bottom: 15px;
+}
+
+.quality-assurance-page .footer-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 40px;
+    height: 3px;
+    background: var(--gradient-primary);
+}
+
+.quality-assurance-page .footer-links {
+    list-style: none;
+}
+
+.quality-assurance-page .footer-links li {
+    margin-bottom: 15px;
+}
+
+.quality-assurance-page .footer-links a {
+    color: #b2bec3;
+    text-decoration: none;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.quality-assurance-page .footer-links a:hover {
+    color: var(--light-green);
+    padding-left: 10px;
+}
+
+.quality-assurance-page .contact-info p {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+.quality-assurance-page .contact-info i {
+    color: var(--primary-green);
+    margin-right: 15px;
+    margin-top: 5px;
+    min-width: 20px;
+}
+
+.quality-assurance-page .footer-bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 30px 0;
+    text-align: center;
+}
+
+.quality-assurance-page .footer-bottom p {
+    color: #95a5a6;
+    font-size: 14px;
+}
+
+/* WhatsApp Float */
+.quality-assurance-page .whatsapp-float {
+    position: fixed;
+    bottom: 40px;
+    right: 40px;
+    background: linear-gradient(135deg, #25d366, #1da851);
+    color: white;
+    border-radius: 50px;
+    padding: 16px 28px;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    box-shadow: 0 10px 30px rgba(37, 211, 102, 0.3);
+    z-index: 1000;
+    transition: var(--transition);
+}
+
+.quality-assurance-page .whatsapp-float:hover {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 20px 50px rgba(37, 211, 102, 0.4);
+}
+
+/* Responsive Styles */
+@media (max-width: 1200px) {
+    .quality-assurance-page .quality-hero-title {
+        font-size: 3rem;
+    }
+    .quality-assurance-page .orbital-system {
+        width: 340px;
+        height: 340px;
+    }
+    .quality-assurance-page .orbital-path-1 {
+        width: 250px;
+        height: 250px;
+    }
+    .quality-assurance-page .orbital-path-2 {
+        width: 180px;
+        height: 180px;
+    }
+    .quality-assurance-page .orbital-stage {
+        width: 80px;
+        height: 80px;
+        font-size: 11px;
+    }
+    .quality-assurance-page .orbital-stage i {
+        font-size: 24px;
+    }
+    .quality-assurance-page .tier-card {
+        min-height: 620px;
+    }
+    .quality-assurance-page .badge-circle {
+        width: 250px;
+        height: 250px;
+    }
+}
+
+@media (max-width: 992px) {
+    .quality-assurance-page .nav-menu {
+        position: fixed;
+        top: 90px;
+        left: -100%;
+        width: 90%;
+        max-width: 400px;
+        flex-direction: column;
+        background-color: white;
+        padding: 30px;
+        box-shadow: var(--shadow-hover);
+        transition: var(--transition);
+        z-index: 999;
+        border-radius: 0 20px 20px 0;
+        height: calc(100vh - 90px);
+        overflow-y: auto;
+        gap: 0;
+    }
+    .quality-assurance-page .nav-menu.active {
+        left: 0;
+    }
+    .quality-assurance-page .nav-item {
+        margin: 0;
+        width: 100%;
+    }
+    .quality-assurance-page .nav-item a {
+        padding: 18px 20px;
+        font-size: 16px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        justify-content: flex-start;
+    }
+    .quality-assurance-page .auth-buttons {
+        margin: 30px 0 0;
+        flex-direction: column;
+        width: 100%;
+    }
+    .quality-assurance-page .btn-login,
+    .quality-assurance-page .btn-register {
+        width: 100%;
+        justify-content: center;
+    }
+    .quality-assurance-page .mobile-menu-btn {
+        display: block;
+        order: 3;
+    }
+    .quality-assurance-page .quality-hero-content {
+        flex-direction: column;
+        gap: 50px;
+    }
+    .quality-assurance-page .hero-text-content,
+    .quality-assurance-page .hero-visual-content {
+        max-width: 100%;
+        width: 100%;
+    }
+    .quality-assurance-page .quality-hero-title {
+        text-align: center;
+    }
+    .quality-assurance-page .quality-hero-title::after {
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    .quality-assurance-page .quality-hero-subtitle {
+        text-align: center;
+    }
+    .quality-assurance-page .quality-visualization {
+        height: 350px;
+    }
+    .quality-assurance-page .tiers-container {
+        flex-direction: column;
+        align-items: center;
+    }
+    .quality-assurance-page .tier-card {
+        width: 100%;
+        max-width: 500px;
+        min-height: auto;
+    }
+    .quality-assurance-page .standards-container {
+        flex-direction: column;
+        align-items: center;
+    }
+    .quality-assurance-page .standard-card {
+        width: 100%;
+        max-width: 500px;
+        min-height: auto;
+    }
+    .quality-assurance-page .certification-container {
+        flex-direction: column;
+        gap: 40px;
+    }
+    .quality-assurance-page .certification-visual {
+        min-height: 400px;
+        width: 100%;
+    }
+    .quality-assurance-page .benefits-grid {
+        flex-direction: column;
+        align-items: center;
+    }
+    .quality-assurance-page .benefit-card {
+        width: 100%;
+        max-width: 500px;
+        min-height: auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .quality-assurance-page .container {
+        padding: 0 20px;
+    }
+    .quality-assurance-page section {
+        padding: 80px 0;
+    }
+    .quality-assurance-page .quality-hero {
+        padding: 100px 0 60px;
+    }
+    .quality-assurance-page .quality-hero-title {
+        font-size: 2.5rem;
+    }
+    .quality-assurance-page .quality-hero-subtitle {
+        font-size: 1.1rem;
+        margin: 30px 0 40px;
+    }
+    .quality-assurance-page .quality-visualization {
+        height: 300px;
+    }
+    .quality-assurance-page .orbital-system {
+        width: 300px;
+        height: 300px;
+    }
+    .quality-assurance-page .orbital-path-1 {
+        width: 220px;
+        height: 220px;
+    }
+    .quality-assurance-page .orbital-path-2 {
+        width: 160px;
+        height: 160px;
+    }
+    .quality-assurance-page .orbital-stage {
+        width: 70px;
+        height: 70px;
+        font-size: 10px;
+    }
+    .quality-assurance-page .orbital-stage i {
+        font-size: 22px;
+    }
+    .quality-assurance-page .central-certification {
+        width: 100px;
+        height: 100px;
+    }
+    .quality-assurance-page .central-certification i {
+        font-size: 32px;
+    }
+    .quality-assurance-page .hero-stats {
+        flex-direction: column;
+        gap: 30px;
+    }
+    .quality-assurance-page .hero-stat-item {
+        width: 100%;
+    }
+    .quality-assurance-page .hero-stat-number {
+        font-size: 2.2rem;
+    }
+    .quality-assurance-page .section-title {
+        font-size: 2.2rem;
+    }
+    .quality-assurance-page .tier-card {
+        padding: 35px 25px;
+    }
+    .quality-assurance-page .tier-icon {
+        width: 80px;
+        height: 80px;
+        font-size: 32px;
+    }
+    .quality-assurance-page .tier-title {
+        font-size: 1.4rem;
+    }
+    .quality-assurance-page .standard-card {
+        padding: 30px 25px;
+    }
+    .quality-assurance-page .standard-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 24px;
+    }
+    .quality-assurance-page .standard-title {
+        font-size: 1.3rem;
+    }
+    .quality-assurance-page .badge-circle {
+        width: 220px;
+        height: 220px;
+    }
+    .quality-assurance-page .badge-icon {
+        font-size: 50px;
+    }
+    .quality-assurance-page .badge-text {
+        font-size: 20px;
+    }
+    .quality-assurance-page .benefit-card {
+        padding: 30px 20px;
+    }
+    .quality-assurance-page .benefit-icon {
+        width: 70px;
+        height: 70px;
+        font-size: 28px;
+    }
+    .quality-assurance-page .benefit-title {
+        font-size: 1.2rem;
+    }
+    .quality-assurance-page .stats-grid {
+        gap: 30px;
+    }
+    .quality-assurance-page .stat-number {
+        font-size: 2.5rem;
+    }
+    .quality-assurance-page .cta-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    .quality-assurance-page .btn-quality-primary,
+    .quality-assurance-page .btn-quality-secondary {
+        width: 100%;
+        max-width: 300px;
+        justify-content: center;
+    }
+    .quality-assurance-page .whatsapp-float .whatsapp-text {
+        display: none;
+    }
+    .quality-assurance-page .whatsapp-float {
+        bottom: 25px;
+        right: 25px;
+        padding: 16px;
+    }
+}
+
+@media (max-width: 576px) {
+    .quality-assurance-page .quality-hero-title {
+        font-size: 2rem;
+    }
+    .quality-assurance-page .quality-hero-title::after {
+        width: 120px;
+    }
+    .quality-assurance-page .section-title {
+        font-size: 1.8rem;
+    }
+    .quality-assurance-page .quality-visualization {
+        height: 280px;
+    }
+    .quality-assurance-page .orbital-system {
+        width: 260px;
+        height: 260px;
+    }
+    .quality-assurance-page .orbital-path-1 {
+        width: 200px;
+        height: 200px;
+    }
+    .quality-assurance-page .orbital-path-2 {
+        display: none;
+    }
+    .quality-assurance-page .orbital-stage {
+        width: 65px;
+        height: 65px;
+        font-size: 9px;
+        padding: 8px;
+    }
+    .quality-assurance-page .orbital-stage i {
+        font-size: 20px;
+        margin-bottom: 3px;
+    }
+    .quality-assurance-page .central-certification {
+        width: 90px;
+        height: 90px;
+    }
+    .quality-assurance-page .central-certification i {
+        font-size: 28px;
+        margin-bottom: 8px;
+    }
+    .quality-assurance-page .central-text {
+        font-size: 14px;
+    }
+    .quality-assurance-page .stats-grid {
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+    }
+    .quality-assurance-page .stat-item {
+        padding: 20px;
+        width: 100%;
+        max-width: 300px;
+    }
+    .quality-assurance-page .stat-number {
+        font-size: 2.2rem;
+    }
+    .quality-assurance-page .quality-cta-title {
+        font-size: 2rem;
+    }
+    .quality-assurance-page .floating-element {
+        display: none;
+    }
+    .quality-assurance-page .standard-metrics {
+        grid-template-columns: 1fr;
+    }
+}
