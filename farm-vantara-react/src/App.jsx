@@ -15,7 +15,7 @@ import MarketPrices from "./pages/MarketPrices";
 import CropListing from "./pages/CropListing";
 import VolumePricing from "./pages/VolumePricing";
 import Blog from "./pages/Blog";
-import FAQ from "./pages/FAQ";
+import FAQ from "./pages/Faq";
 import Payments from "./pages/Payments";
 import Logistics from "./pages/Logistics";
 import BusinessSolutions from "./pages/BusinessSolutions";

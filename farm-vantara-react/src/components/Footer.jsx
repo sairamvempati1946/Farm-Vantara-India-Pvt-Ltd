@@ -336,15 +336,15 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Footer Bottom - Updated with working policy links */}
+        {/* Footer Bottom - Restructured with stacked lines for premium readability */}
         <div className="footer-bottom">
           <div className="footer-bottom-content">
-            <p className="copyright-line">
+            <p className="copyright-text">
               &copy; {currentYear} Farm Vantara India Private Limited – India's Leading AgriTech Platform. All rights reserved.
-
+            </p>
+            <div className="footer-bottom-meta">
               {policyLinks.map((policy, index) => (
-                <span key={policy.id}>
-                  <span className="copyright-separator">|</span>
+                <span key={policy.id} className="footer-meta-item">
                   <a
                     href="#"
                     onClick={(e) => handlePolicyClick(e, policy.id)}
@@ -352,18 +352,23 @@ const Footer = () => {
                   >
                     {policy.label}
                   </a>
+                  {index < policyLinks.length - 1 && <span className="copyright-separator">|</span>}
                 </span>
               ))}
+              <span className="copyright-separator">|</span>
               <span className="inline-group">
                 <i className="fas fa-leaf"></i>
                 <span>UDYAM-AP-03-0113582</span>
               </span>
               <span className="copyright-separator">|</span>
-              <i className="fas fa-shield-alt"></i>
-              <span>Govt. Certified</span>
-            </p>
+              <span className="inline-group">
+                <i className="fas fa-shield-alt"></i>
+                <span>Govt. Certified</span>
+              </span>
+            </div>
           </div>
         </div>
+
       </div>
     </footer>
   );

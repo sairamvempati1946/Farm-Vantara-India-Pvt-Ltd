@@ -20,6 +20,11 @@ const Navbar = ({
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+
+  if (location.pathname.startsWith('/admin')) {
+    return null;
+  }
+
   const [currentUser, setCurrentUser] = useState(null);
   const [buyerData, setBuyerData] = useState({
     cartCount: 0,
@@ -81,7 +86,7 @@ const Navbar = ({
     localStorage.removeItem('favorites_buyer');
     sessionStorage.removeItem('farmvantara_token');
     sessionStorage.removeItem('farmvantara_user');
-    window.location.href = "/login";
+    window.location.href = "/";
   };
 
   // Define link sets for different routes (unchanged)
@@ -368,19 +373,15 @@ const Navbar = ({
           <nav className="navbar">
 
             {/* Logo */}
-            <div className="logo">
-              <svg className="logo-svg" viewBox="0 0 100 100">
-                <rect width="100" height="100" rx="20" fill="url(#gradient)" />
-                <defs>
-                  <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style={{ stopColor: '#27ae60' }} />
-                    <stop offset="100%" style={{ stopColor: '#219653' }} />
-                  </linearGradient>
-                </defs>
-                <text x="50" y="68" fontSize="48" textAnchor="middle" fill="white">🌾</text>
-              </svg>
-              <span className="logo-text">Farm Vantara</span>
-            </div>
+            <Link to="/" className="logo" style={{ textDecoration: 'none' }}>
+              <img
+                src={logo}
+                alt="Farm Vantara Logo"
+                className="logo-img"
+                style={{ height: '40px', width: 'auto' }}
+                loading="eager"
+              />
+            </Link>
 
             {/* Right Section */}
             <div className="header-right">
@@ -427,10 +428,13 @@ const Navbar = ({
           <nav className="navbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0' }}>
             {/* Logo */}
             <Link to="/buyer-dashboard" className="logo" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
-              <div style={{ background: '#27ae60', width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <i className="fas fa-shopping-cart" style={{ color: 'white', fontSize: '16px' }}></i>
-              </div>
-              <span className="logo-text" style={{ fontSize: '20px', fontWeight: '700', color: '#27ae60', fontFamily: 'Poppins, sans-serif' }}>Farm Vantara</span>
+              <img
+                src={logo}
+                alt="Farm Vantara Logo"
+                className="logo-img"
+                style={{ height: '40px', width: 'auto' }}
+                loading="eager"
+              />
             </Link>
 
             {/* Right Section */}
@@ -528,7 +532,7 @@ const Navbar = ({
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
                   <div style={{ fontSize: '13px', fontWeight: '600', color: '#1e293b', display: 'flex', alignItems: 'center' }}>
-                    {displayName} <i className="fas fa-chevron-down" style={{ fontSize: '10px', marginLeft: '6px', color: '#64748b' }}></i>
+                    {displayName}
                   </div>
                   <div style={{ fontSize: '10px', color: '#64748b' }}>Buyer Account</div>
                 </div>
@@ -748,7 +752,7 @@ const Navbar = ({
                       {currentUser ? (
                         <>
                           <Link 
-                            to={currentUser.role === 'farmer' ? '/farmer-dashboard' : '/buyer-dashboard'} 
+                            to={currentUser.role === 'farmer' ? '/farmer-dashboard' : (currentUser.role === 'admin' ? '/admin' : '/buyer-dashboard')} 
                             className="btn-login me-2"
                           >
                             <i className="fas fa-tachometer-alt"></i> Dashboard

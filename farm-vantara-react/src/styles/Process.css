@@ -633,7 +633,7 @@ section {
   color: transparent;
 }
 
-.step-description {
+.process-step-card .step-description {
   color: var(--text-light);
   font-size: 1.05rem;
   line-height: 1.7;
@@ -812,12 +812,14 @@ section {
 .benefits-visual {
   flex: 1;
   position: relative;
-  min-height: 500px;
+  min-height: auto !important;
+  max-height: 380px !important;
+  height: 380px !important;
 }
 
 .benefits-image {
   width: 100%;
-  height: 100%;
+  height: 100% !important;
   border-radius: 20px;
   overflow: hidden;
   box-shadow: var(--shadow);
@@ -825,7 +827,7 @@ section {
 
 .benefits-image img {
   width: 100%;
-  height: 100%;
+  height: 100% !important;
   object-fit: cover;
 }
 

@@ -241,8 +241,8 @@ const Login = () => {
     setSessionWarning(false);
     resetForm();
 
-    // ✅ IMPORTANT redirect to login
-    window.location.href = "/login";
+    // ✅ IMPORTANT redirect to homepage
+    window.location.href = "/";
   };
 
   // Reset form
@@ -510,9 +510,6 @@ const Login = () => {
             <h1 className="hero-title">Welcome Back to Farm Vantara</h1>
             <p className="hero-subtitle">Login to your account to continue your journey with India's leading farm-to-market platform</p>
           </div>
-
-          {/* {!loginSuccess ? */}
-
           <div className="login-wrapper">
             {/* Left Column: Login Form */}
             <div className="login-column login-column-left">
@@ -690,29 +687,6 @@ const Login = () => {
               </div>
             </div>
           </div>
-          ) : (
-          /* Success State */
-          <div className="success-state active">
-            <div className="success-icon"><i className="fas fa-check"></i></div>
-            <h2 className="success-title" id="successTitle">Welcome Back, {userData?.name}!</h2>
-            <p className="success-message" id="successMessage">
-              {userData?.role === 'farmer' && 'Ready to manage your farm and connect with buyers?'}
-              {userData?.role === 'business' && 'Ready to source fresh produce for your business?'}
-              {/* {userData?.role === 'consumer' && 'Ready to shop for farm-fresh products?'} */}
-              {userData?.role === 'admin' && 'Access the admin dashboard to manage the platform.'}
-            </p>
-            <div className="success-actions" id="successActions">
-              <a href={userData?.redirectTo || (userData?.role === 'farmer' ? '/farmer-dashboard' : '/buyer-dashboard')} className="login-button" style={{ marginBottom: '15px' }}>
-                <i className="fas fa-tachometer-alt"></i> Go to Dashboard
-              </a>
-              <div className="success-actions">
-                <a href="/" className="register-button" style={{ padding: '12px 24px' }}><i className="fas fa-home"></i> Go to Homepage</a>
-                <button className="logout-button" onClick={logoutUser}><i className="fas fa-sign-out-alt"></i> Logout</button>
-              </div>
-            </div>
-          </div>
-          )
-          {/* } */}
         </div>
       </section>
 

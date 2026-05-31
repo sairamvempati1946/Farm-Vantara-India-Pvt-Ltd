@@ -439,7 +439,7 @@ const Business = () => {
                     </div>
                     <div className="flow-step-content">
                       <h3 className="flow-step-title">
-                        <i className={`fas ${step.icon}`}></i> {step.title}
+                        {step.title}
                       </h3>
                       <p className="flow-step-description">{step.description}</p>
                       <span className="flow-step-highlight">{step.highlight}</span>

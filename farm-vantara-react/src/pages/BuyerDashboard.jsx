@@ -4,8 +4,18 @@ import { Line, Doughnut } from 'react-chartjs-2';
 import html2pdf from 'html2pdf.js';
 import { supabase } from '../supabaseClient';
 import '../styles/BuyerDashboard.css';
+import logo from '../assets/logo.png';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement);
+
+const getFarmerInitials = (name) => {
+    if (!name) return 'FV';
+    const words = name.trim().split(/\s+/);
+    if (words.length >= 2) {
+        return words.slice(0, 3).map(w => w[0]).join('').toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+};
 
 const BuyerDashboard = () => {
     // ============ STATE & INITIALIZATION ============
@@ -324,9 +334,10 @@ const BuyerDashboard = () => {
                             ? (matchedFarmer.full_name || matchedFarmer.farm_name) 
                             : 'Verified Farmer';
 
+                        const initials = getFarmerInitials(resolvedFarmerName);
                         return {
                             id: o.id,
-                            displayId: 'ORD - ' + String(idx + 1).padStart(3, '0'),
+                            displayId: `${initials} - ORD - ${String(idx + 1).padStart(3, '0')}`,
                             farmerId: o.farmer_id,
                             farmerName: resolvedFarmerName,
                             productId: o.product_id || '',
@@ -433,7 +444,7 @@ const BuyerDashboard = () => {
             sessionStorage.removeItem('farmvantara_token');
             sessionStorage.removeItem('farmvantara_user');
             showNotification('Logged out successfully!');
-            window.location.href = "/login";
+            window.location.href = "/";
         }
     };
 
@@ -564,9 +575,10 @@ const BuyerDashboard = () => {
                 }
             }
 
+            const initials = getFarmerInitials(farmerData.farmerName);
             const orderPayload = {
-                id: 'ORD - ' + String(orders.length + newOrdersList.length + 1).padStart(3, '0'),
-                displayId: 'ORD - ' + String(orders.length + newOrdersList.length + 1).padStart(3, '0'),
+                id: `${initials} - ORD - ${String(orders.length + newOrdersList.length + 1).padStart(3, '0')}`,
+                displayId: `${initials} - ORD - ${String(orders.length + newOrdersList.length + 1).padStart(3, '0')}`,
                 farmerId: farmerId,
                 farmerName: farmerData.farmerName,
                 productId: '',
@@ -626,9 +638,10 @@ const BuyerDashboard = () => {
             return;
         }
 
+        const initials = getFarmerInitials(orderForm.farmerName);
         const newOrder = {
-            id: 'ORD - ' + String(orders.length + 1).padStart(3, '0'),
-            displayId: 'ORD - ' + String(orders.length + 1).padStart(3, '0'),
+            id: `${initials} - ORD - ${String(orders.length + 1).padStart(3, '0')}`,
+            displayId: `${initials} - ORD - ${String(orders.length + 1).padStart(3, '0')}`,
             farmerId: orderForm.farmerId,
             farmerName: orderForm.farmerName,
             productId: orderForm.productId,
@@ -909,7 +922,7 @@ const BuyerDashboard = () => {
     };
 
     // ============ RENDERING COMPUTATIONS ============
-    const totalSpent = orders.reduce((s, o) => s + o.amount, 0);
+    const totalSpent = orders.filter(o => ['confirmed', 'shipped', 'delivered'].includes(o.status)).reduce((s, o) => s + o.amount, 0);
     const activeOrdersCount = orders.filter(o => ['pending', 'confirmed', 'shipped'].includes(o.status)).length;
     const pendingPitchesCount = receivedPitches.filter(p => p.status === 'pending').length;
 
@@ -921,9 +934,9 @@ const BuyerDashboard = () => {
         return true;
     });
 
-    // Farmer-wise summary report computation
+    // Farmer-wise summary report computation - only confirmed, shipped, and delivered orders
     const farmerPurchasesReportMap = {};
-    filteredOrders.forEach(order => {
+    filteredOrders.filter(o => ['confirmed', 'shipped', 'delivered'].includes(o.status)).forEach(order => {
         if (!farmerPurchasesReportMap[order.farmerName]) {
             farmerPurchasesReportMap[order.farmerName] = { quantity: 0, amount: 0, orders: 0 };
         }
@@ -978,7 +991,13 @@ const BuyerDashboard = () => {
                     ) : (
                         cart.map((item, index) => (
                             <div className="cart-item" key={index}>
-                                <div className="cart-item-image"><i className="fas fa-seedling"></i></div>
+                                <div className="cart-item-image">
+                                    {products.find(p => p.id === item.productId)?.imageData ? (
+                                        <img src={products.find(p => p.id === item.productId).imageData} alt={item.productName} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
+                                    ) : (
+                                        <i className="fas fa-seedling"></i>
+                                    )}
+                                </div>
                                 <div className="cart-item-details">
                                     <div className="cart-item-name">{item.productName}</div>
                                     <div className="cart-item-farmer"><i className="fas fa-tractor"></i> {item.farmerName}</div>
@@ -1392,28 +1411,37 @@ const BuyerDashboard = () => {
                             </div>
 
                             {/* PDF Printable Container */}
-                            <div id="reportContainer" className="report-preview">
-                                <div className="report-header">
+                            <div id="reportContainer" className="report-preview" style={{ position: 'relative', padding: '25px', backgroundColor: '#ffffff', borderRadius: '8px' }}>
+                                {/* Top Right Corner Brand Logo */}
+                                <div style={{ position: 'absolute', top: '25px', right: '25px' }}>
+                                    <img
+                                        src={logo}
+                                        alt="Farm Vantara Logo"
+                                        style={{ height: '40px', width: 'auto' }}
+                                    />
+                                </div>
+
+                                <div className="report-header" style={{ paddingRight: '180px', marginBottom: '20px' }}>
                                     <h2>{buyerInfo.businessName} - Purchase Report</h2>
                                     <p>{new Date().toLocaleString('en-IN')}</p>
                                 </div>
                                 <div className="report-summary">
                                     <div className="report-summary-card">
-                                        <div className="value">{formatCurrency(filteredOrders.reduce((s, o) => s + o.amount, 0))}</div>
+                                        <div className="value">{formatCurrency(filteredOrders.filter(o => ['confirmed', 'shipped', 'delivered'].includes(o.status)).reduce((s, o) => s + o.amount, 0))}</div>
                                         <div>Total Spend</div>
                                     </div>
                                     <div className="report-summary-card">
-                                        <div className="value">{filteredOrders.length}</div>
+                                        <div className="value">{filteredOrders.filter(o => ['confirmed', 'shipped', 'delivered'].includes(o.status)).length}</div>
                                         <div>Orders</div>
                                     </div>
                                     <div className="report-summary-card">
-                                        <div className="value">{filteredOrders.reduce((s, o) => s + o.quantity, 0)} kg</div>
+                                        <div className="value">{filteredOrders.filter(o => ['confirmed', 'shipped', 'delivered'].includes(o.status)).reduce((s, o) => s + o.quantity, 0)} kg</div>
                                         <div>Quantity</div>
                                     </div>
                                     <div className="report-summary-card">
                                         <div className="value">
-                                            {filteredOrders.length > 0
-                                                ? formatCurrency(Math.round(filteredOrders.reduce((s, o) => s + o.amount, 0) / filteredOrders.length))
+                                            {filteredOrders.filter(o => ['confirmed', 'shipped', 'delivered'].includes(o.status)).length > 0
+                                                ? formatCurrency(Math.round(filteredOrders.filter(o => ['confirmed', 'shipped', 'delivered'].includes(o.status)).reduce((s, o) => s + o.amount, 0) / filteredOrders.filter(o => ['confirmed', 'shipped', 'delivered'].includes(o.status)).length))
                                                 : '₹0'}
                                         </div>
                                         <div>Avg Order</div>
@@ -1469,7 +1497,9 @@ const BuyerDashboard = () => {
                                         ))}
                                     </tbody>
                                 </table>
-                                <div className="report-footer">© Farm Vantara</div>
+                                <div className="report-footer" style={{ color: '#94a3b8', fontWeight: '500' }}>
+                                    &copy; {new Date().getFullYear()} Farm Vantara India Pvt Ltd. All Rights Reserved.
+                                </div>
                             </div>
                         </div>
                     )}
@@ -1624,7 +1654,13 @@ const BuyerDashboard = () => {
                                     const farmer = farmers.find(f => f.id === p.farmerId) || { name: 'Verified Farmer' };
                                     return (
                                         <div className="product-card" key={p.id}>
-                                            <div className="product-image"><div className="image-placeholder"><i className="fas fa-seedling"></i></div></div>
+                                            <div className="product-image">
+                                                {p.imageData ? (
+                                                    <img src={p.imageData} alt={p.name} />
+                                                ) : (
+                                                    <div className="image-placeholder"><i className="fas fa-seedling"></i></div>
+                                                )}
+                                            </div>
                                             <div className="product-info">
                                                 <div className="product-name">{p.name}</div>
                                                 <div className="farmer-info">
@@ -1720,7 +1756,13 @@ const BuyerDashboard = () => {
                                     const isInWishlist = wishlist.includes(p.id);
                                     return (
                                         <div className="product-card" style={{ cursor: 'pointer' }} onClick={() => openProductDetailsModal(p.id)} key={p.id}>
-                                            <div className="product-image"><div className="image-placeholder"><i className="fas fa-seedling"></i></div></div>
+                                            <div className="product-image">
+                                                {p.imageData ? (
+                                                    <img src={p.imageData} alt={p.name} />
+                                                ) : (
+                                                    <div className="image-placeholder"><i className="fas fa-seedling"></i></div>
+                                                )}
+                                            </div>
                                             <div className="product-info">
                                                 <div className="product-name">{p.name}</div>
                                                 <div className="product-price">{formatCurrency(p.price)}/kg</div>
@@ -1764,7 +1806,11 @@ const BuyerDashboard = () => {
                         <div id="productDetailContent">
                             <div className="product-detail-container">
                                 <div className="product-detail-image">
-                                    <i className="fas fa-seedling"></i>
+                                    {selectedProduct.imageData ? (
+                                        <img src={selectedProduct.imageData} alt={selectedProduct.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '12px' }} />
+                                    ) : (
+                                        <i className="fas fa-seedling"></i>
+                                    )}
                                 </div>
                                 <div className="product-detail-info">
                                     <div className="detail-row">
@@ -2046,119 +2092,177 @@ const BuyerDashboard = () => {
                         <div style={{ marginBottom: '10px' }}>
                             <h4 style={{ fontSize: '13px', fontWeight: '600', color: '#475569', marginBottom: '20px', textAlign: 'left' }}>Delivery Timeline</h4>
                             
-                            <div style={{ display: 'flex', justifyContent: 'space-between', position: 'relative', padding: '0 10px' }}>
-                                {/* Horizontal timeline bar */}
-                                <div style={{
-                                    position: 'absolute',
-                                    top: '15px',
-                                    left: '30px',
-                                    right: '30px',
-                                    height: '4px',
-                                    background: '#e2e8f0',
-                                    zIndex: 1
-                                }}></div>
-
-                                {/* Active connection bar depending on status */}
-                                <div style={{
-                                    position: 'absolute',
-                                    top: '15px',
-                                    left: '30px',
-                                    width: 
-                                        trackedOrder.status === 'pending' ? '0%' :
-                                        trackedOrder.status === 'confirmed' ? '33.33%' :
-                                        trackedOrder.status === 'shipped' ? '66.66%' :
-                                        trackedOrder.status === 'delivered' ? '100%' : '0%',
-                                    height: '4px',
-                                    background: '#27ae60',
-                                    zIndex: 2,
-                                    transition: 'width 0.4s ease'
-                                }}></div>
-
-                                {/* Step 1: Placed / Pending */}
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 3, width: '70px', textAlign: 'center' }}>
+                            {trackedOrder.status === 'cancelled' ? (
+                                <div style={{ display: 'flex', justifyContent: 'space-between', position: 'relative', padding: '0 80px' }}>
+                                    {/* Horizontal timeline bar - Red, connects center-to-center perfectly without extending beyond */}
                                     <div style={{
-                                        width: '32px',
-                                        height: '32px',
-                                        borderRadius: '50%',
+                                        position: 'absolute',
+                                        top: '15px',
+                                        left: '115px',
+                                        right: '115px',
+                                        height: '4px',
+                                        background: '#e74c3c',
+                                        zIndex: 1
+                                    }}></div>
+
+                                    {/* Step 1: Placed */}
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 3, width: '70px', textAlign: 'center' }}>
+                                        <div style={{
+                                            width: '32px',
+                                            height: '32px',
+                                            borderRadius: '50%',
+                                            background: '#27ae60',
+                                            color: 'white',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontSize: '12px',
+                                            fontWeight: 'bold',
+                                            marginBottom: '8px',
+                                            boxShadow: '0 4px 6px rgba(39, 174, 96, 0.2)'
+                                        }}>
+                                            <i className="fas fa-clipboard-check"></i>
+                                        </div>
+                                        <span style={{ fontSize: '11px', fontWeight: '600', color: '#1e293b' }}>Placed</span>
+                                        <span style={{ fontSize: '9px', color: '#64748b', marginTop: '2px' }}>{trackedOrder.date}</span>
+                                    </div>
+
+                                    {/* Step 2: Cancelled */}
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 3, width: '70px', textAlign: 'center' }}>
+                                        <div style={{
+                                            width: '32px',
+                                            height: '32px',
+                                            borderRadius: '50%',
+                                            background: '#e74c3c',
+                                            color: 'white',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontSize: '12px',
+                                            fontWeight: 'bold',
+                                            marginBottom: '8px',
+                                            boxShadow: '0 4px 6px rgba(231, 76, 60, 0.2)'
+                                        }}>
+                                            <i className="fas fa-times-circle"></i>
+                                        </div>
+                                        <span style={{ fontSize: '11px', fontWeight: '600', color: '#e74c3c' }}>Cancelled</span>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div style={{ display: 'flex', justifyContent: 'space-between', position: 'relative', padding: '0 10px' }}>
+                                    {/* Horizontal timeline bar - center-aligned */}
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: '15px',
+                                        left: '45px',
+                                        right: '45px',
+                                        height: '4px',
+                                        background: '#e2e8f0',
+                                        zIndex: 1
+                                    }}></div>
+
+                                    {/* Active connection bar depending on status - center-aligned */}
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: '15px',
+                                        left: '45px',
+                                        width: 
+                                            trackedOrder.status === 'pending' ? '0%' :
+                                            trackedOrder.status === 'confirmed' ? 'calc((100% - 90px) * 0.3333)' :
+                                            trackedOrder.status === 'shipped' ? 'calc((100% - 90px) * 0.6666)' :
+                                            trackedOrder.status === 'delivered' ? 'calc(100% - 90px)' : '0%',
+                                        height: '4px',
                                         background: '#27ae60',
-                                        color: 'white',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        fontSize: '12px',
-                                        fontWeight: 'bold',
-                                        marginBottom: '8px',
-                                        boxShadow: '0 4px 6px rgba(39, 174, 96, 0.2)'
-                                    }}>
-                                        <i className="fas fa-clipboard-check"></i>
-                                    </div>
-                                    <span style={{ fontSize: '11px', fontWeight: '600', color: '#1e293b' }}>Placed</span>
-                                    <span style={{ fontSize: '9px', color: '#64748b', marginTop: '2px' }}>{trackedOrder.date}</span>
-                                </div>
+                                        zIndex: 2,
+                                        transition: 'width 0.4s ease'
+                                    }}></div>
 
-                                {/* Step 2: Confirmed */}
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 3, width: '70px', textAlign: 'center' }}>
-                                    <div style={{
-                                        width: '32px',
-                                        height: '32px',
-                                        borderRadius: '50%',
-                                        background: ['confirmed', 'shipped', 'delivered'].includes(trackedOrder.status) ? '#27ae60' : '#e2e8f0',
-                                        color: ['confirmed', 'shipped', 'delivered'].includes(trackedOrder.status) ? 'white' : '#64748b',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        fontSize: '12px',
-                                        fontWeight: 'bold',
-                                        marginBottom: '8px',
-                                        transition: 'all 0.3s'
-                                    }}>
-                                        <i className="fas fa-check-circle"></i>
+                                    {/* Step 1: Placed / Pending */}
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 3, width: '70px', textAlign: 'center' }}>
+                                        <div style={{
+                                            width: '32px',
+                                            height: '32px',
+                                            borderRadius: '50%',
+                                            background: '#27ae60',
+                                            color: 'white',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontSize: '12px',
+                                            fontWeight: 'bold',
+                                            marginBottom: '8px',
+                                            boxShadow: '0 4px 6px rgba(39, 174, 96, 0.2)'
+                                        }}>
+                                            <i className="fas fa-clipboard-check"></i>
+                                        </div>
+                                        <span style={{ fontSize: '11px', fontWeight: '600', color: '#1e293b' }}>Placed</span>
+                                        <span style={{ fontSize: '9px', color: '#64748b', marginTop: '2px' }}>{trackedOrder.date}</span>
                                     </div>
-                                    <span style={{ fontSize: '11px', fontWeight: '600', color: ['confirmed', 'shipped', 'delivered'].includes(trackedOrder.status) ? '#1e293b' : '#64748b' }}>Confirmed</span>
-                                </div>
 
-                                {/* Step 3: Shipped */}
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 3, width: '70px', textAlign: 'center' }}>
-                                    <div style={{
-                                        width: '32px',
-                                        height: '32px',
-                                        borderRadius: '50%',
-                                        background: ['shipped', 'delivered'].includes(trackedOrder.status) ? '#27ae60' : '#e2e8f0',
-                                        color: ['shipped', 'delivered'].includes(trackedOrder.status) ? 'white' : '#64748b',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        fontSize: '12px',
-                                        fontWeight: 'bold',
-                                        marginBottom: '8px',
-                                        transition: 'all 0.3s'
-                                    }}>
-                                        <i className="fas fa-truck"></i>
+                                    {/* Step 2: Confirmed */}
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 3, width: '70px', textAlign: 'center' }}>
+                                        <div style={{
+                                            width: '32px',
+                                            height: '32px',
+                                            borderRadius: '50%',
+                                            background: ['confirmed', 'shipped', 'delivered'].includes(trackedOrder.status) ? '#27ae60' : '#e2e8f0',
+                                            color: ['confirmed', 'shipped', 'delivered'].includes(trackedOrder.status) ? 'white' : '#64748b',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontSize: '12px',
+                                            fontWeight: 'bold',
+                                            marginBottom: '8px',
+                                            transition: 'all 0.3s'
+                                        }}>
+                                            <i className="fas fa-check-circle"></i>
+                                        </div>
+                                        <span style={{ fontSize: '11px', fontWeight: '600', color: ['confirmed', 'shipped', 'delivered'].includes(trackedOrder.status) ? '#1e293b' : '#64748b' }}>Confirmed</span>
                                     </div>
-                                    <span style={{ fontSize: '11px', fontWeight: '600', color: ['shipped', 'delivered'].includes(trackedOrder.status) ? '#1e293b' : '#64748b' }}>Shipped</span>
-                                </div>
 
-                                {/* Step 4: Delivered */}
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 3, width: '70px', textAlign: 'center' }}>
-                                    <div style={{
-                                        width: '32px',
-                                        height: '32px',
-                                        borderRadius: '50%',
-                                        background: trackedOrder.status === 'delivered' ? '#27ae60' : '#e2e8f0',
-                                        color: trackedOrder.status === 'delivered' ? 'white' : '#64748b',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        fontSize: '12px',
-                                        fontWeight: 'bold',
-                                        marginBottom: '8px',
-                                        transition: 'all 0.3s'
-                                    }}>
-                                        <i className="fas fa-home"></i>
+                                    {/* Step 3: Shipped */}
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 3, width: '70px', textAlign: 'center' }}>
+                                        <div style={{
+                                            width: '32px',
+                                            height: '32px',
+                                            borderRadius: '50%',
+                                            background: ['shipped', 'delivered'].includes(trackedOrder.status) ? '#27ae60' : '#e2e8f0',
+                                            color: ['shipped', 'delivered'].includes(trackedOrder.status) ? 'white' : '#64748b',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontSize: '12px',
+                                            fontWeight: 'bold',
+                                            marginBottom: '8px',
+                                            transition: 'all 0.3s'
+                                        }}>
+                                            <i className="fas fa-truck"></i>
+                                        </div>
+                                        <span style={{ fontSize: '11px', fontWeight: '600', color: ['shipped', 'delivered'].includes(trackedOrder.status) ? '#1e293b' : '#64748b' }}>Shipped</span>
                                     </div>
-                                    <span style={{ fontSize: '11px', fontWeight: '600', color: trackedOrder.status === 'delivered' ? '#1e293b' : '#64748b' }}>Delivered</span>
+
+                                    {/* Step 4: Delivered */}
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 3, width: '70px', textAlign: 'center' }}>
+                                        <div style={{
+                                            width: '32px',
+                                            height: '32px',
+                                            borderRadius: '50%',
+                                            background: trackedOrder.status === 'delivered' ? '#27ae60' : '#e2e8f0',
+                                            color: trackedOrder.status === 'delivered' ? 'white' : '#64748b',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontSize: '12px',
+                                            fontWeight: 'bold',
+                                            marginBottom: '8px',
+                                            transition: 'all 0.3s'
+                                        }}>
+                                            <i className="fas fa-home"></i>
+                                        </div>
+                                        <span style={{ fontSize: '11px', fontWeight: '600', color: trackedOrder.status === 'delivered' ? '#1e293b' : '#64748b' }}>Delivered</span>
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
 
                         <div className="form-buttons" style={{ marginTop: '30px', display: 'flex', justifyContent: 'flex-end', border: 'none', padding: '0' }}>

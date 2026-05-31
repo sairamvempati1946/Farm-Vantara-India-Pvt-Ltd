@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import aboutImg from '../assets/aboutsection.jpg';
 import '../styles/Home.css';
 import Homeimg from "../assets/registercta.png";
-import heroImg from "../assets/fv_logo.png";
+import heroImg from "../assets/FV_Logo.png";
 
 const Home = () => {
   const [currentRole, setCurrentRole] = useState(null);

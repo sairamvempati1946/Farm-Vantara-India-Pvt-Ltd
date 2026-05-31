@@ -217,30 +217,32 @@ h5 {
 }
 
 /* Circle */
-.step-icon {
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    background: #fff;
-    border: 2px solid #dfe6e9;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
+.progress-steps .step-icon {
+    width: 45px !important;
+    height: 45px !important;
+    border-radius: 50% !important;
+    background: #fff !important;
+    border: 2px solid #dfe6e9 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-weight: bold !important;
+    color: #636e72 !important; /* Elegant gray color for inactive numbers */
+    box-shadow: none !important;
 }
 
 /* Active */
-.step.active .step-icon {
-    background: #27ae60;
-    color: white;
-    border-color: #27ae60;
+.progress-steps .step.active .step-icon {
+    background: #27ae60 !important;
+    color: white !important;
+    border-color: #27ae60 !important;
 }
 
 /* Completed */
-.step.completed .step-icon {
-    background: #27ae60;
-    color: white;
-    border-color: #27ae60;
+.progress-steps .step.completed .step-icon {
+    background: #27ae60 !important;
+    color: white !important;
+    border-color: #27ae60 !important;
 }
 
 /* Label */

@@ -1,1187 +1,1755 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Chart from 'chart.js/auto';
-import DataTable from 'react-data-table-component';
-import '../styles/AdminDashboard.css';
+import html2pdf from 'html2pdf.js';
+import logo from '../assets/logo.png';
+import { supabase } from '../supabaseClient';
+
+const getFarmerInitials = (name) => {
+    if (!name) return 'FV';
+    const words = name.trim().split(/\s+/);
+    if (words.length >= 2) {
+        return words.slice(0, 3).map(w => w[0]).join('').toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+};
 
 const AdminDashboard = () => {
-  // ---------- State ----------
-  const [sidebarActive, setSidebarActive] = useState(false);
-  const [currentSection, setCurrentSection] = useState('dashboard');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
-  const [showSearchResults, setShowSearchResults] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [alert, setAlert] = useState({ show: false, message: '', type: 'success' });
-
-  // Data states
-  const [farmers, setFarmers] = useState([]);
-  const [buyers, setBuyers] = useState([]);
-  const [consumers, setConsumers] = useState([]);
-  const [orders, setOrders] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [payments, setPayments] = useState([]);
-  const [logistics, setLogistics] = useState([]);
-  const [support, setSupport] = useState([]);
-  const [activities, setActivities] = useState([]);
-  const [notifications, setNotifications] = useState([]);
-  const [pendingApprovals, setPendingApprovals] = useState([]);
-
-  // Stats
-  const [stats, setStats] = useState({
-    totalFarmers: 0,
-    totalBuyers: 0,
-    totalConsumers: 0,
-    pendingOrders: 0,
-    todayRevenue: '₹0',
-  });
-
-  // Modal state
-  const [modals, setModals] = useState({
-    addFarmer: false,
-    verifyBuyer: false,
-    issueRefund: false,
-    sendNotification: false,
-    systemSettings: false,
-  });
-
-  // Chart refs
-  const growthChartRef = useRef(null);
-  const revenueChartRef = useRef(null);
-  const cropChartRef = useRef(null);
-  const regionChartRef = useRef(null);
-  const growthChartInstance = useRef(null);
-  const revenueChartInstance = useRef(null);
-  const cropChartInstance = useRef(null);
-  const regionChartInstance = useRef(null);
-
-  // Form refs (for reset)
-  const addFarmerFormRef = useRef(null);
-  const verifyBuyerFormRef = useRef(null);
-  const refundFormRef = useRef(null);
-  const notificationFormRef = useRef(null);
-  const settingsFormRef = useRef(null);
-
-  // ---------- Effects ----------
-
-  // Load sample data on mount
-  useEffect(() => {
-    loadSampleData();
-    // Initialize charts after data is loaded
-    setTimeout(() => initCharts(), 100);
-    // Simulate real-time updates
-    const interval = setInterval(() => {
-      simulateRealTimeUpdates();
-    }, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Re-initialize charts when data changes (if needed)
-  useEffect(() => {
-    if (growthChartRef.current && revenueChartRef.current) {
-      // charts already initialized, but we can update data if needed
-      // For simplicity, we'll rely on initial data
-    }
-  }, [farmers, buyers, consumers]);
-
-  // Update stats when data changes
-  useEffect(() => {
-    updateStats();
-  }, [farmers, buyers, consumers, orders]);
-
-  // Search effect
-  useEffect(() => {
-    if (searchTerm.length > 2) {
-      performSearch(searchTerm);
-    } else {
-      setShowSearchResults(false);
-    }
-  }, [searchTerm]);
-
-  // Cleanup chart instances on unmount
-  useEffect(() => {
-    return () => {
-      [growthChartInstance, revenueChartInstance, cropChartInstance, regionChartInstance].forEach(inst => {
-        if (inst.current) inst.current.destroy();
-      });
-    };
-  }, []);
-
-  // ---------- Data Loading ----------
-  const loadSampleData = () => {
-    // Farmers
-    setFarmers([
-      { id: 'FARM-1001', name: 'Rajesh Kumar', location: 'Punjab', crops: 'Wheat, Rice', totalSales: '₹12,50,000', rating: '4.8', status: 'active', phone: '+91 9876543210', email: 'rajesh@example.com', farmSize: '12 acres', joined: '2023-01-15', orders: 45 },
-      { id: 'FARM-1002', name: 'Priya Sharma', location: 'Maharashtra', crops: 'Organic Vegetables', totalSales: '₹8,20,000', rating: '4.9', status: 'verified', phone: '+91 9876543211', email: 'priya@example.com', farmSize: '8 acres', joined: '2023-02-20', orders: 32 },
-      { id: 'FARM-1003', name: 'Arun Patel', location: 'Gujarat', crops: 'Cotton, Groundnuts', totalSales: '₹6,70,000', rating: '4.6', status: 'active', phone: '+91 9876543212', email: 'arun@example.com', farmSize: '15 acres', joined: '2023-03-10', orders: 28 },
-      { id: 'FARM-1004', name: 'Suresh Reddy', location: 'Andhra Pradesh', crops: 'Rice, Pulses', totalSales: '₹9,80,000', rating: '4.7', status: 'pending', phone: '+91 9876543213', email: 'suresh@example.com', farmSize: '20 acres', joined: '2023-04-05', orders: 38 },
-    ]);
-
-    // Buyers
-    setBuyers([
-      { id: 'BIZ-2001', name: 'FreshMart Stores', contact: 'Rahul Verma', type: 'Retail Chain', monthlySpend: '₹2,50,000', orders: 120, status: 'verified', gst: '27ABCDE1234F1Z5', phone: '+91 9876543220', email: 'orders@freshmart.com', location: 'Delhi' },
-      { id: 'BIZ-2002', name: 'Green Leaf Restaurant', contact: 'Anjali Mehta', type: 'Restaurant', monthlySpend: '₹1,80,000', orders: 85, status: 'active', gst: '29ABCDE1234F1Z6', phone: '+91 9876543221', email: 'procurement@greenleaf.com', location: 'Mumbai' },
-      { id: 'BIZ-2003', name: 'Agro Processors Ltd', contact: 'Vikram Singh', type: 'Processing Unit', monthlySpend: '₹5,00,000', orders: 45, status: 'verified', gst: '24ABCDE1234F1Z7', phone: '+91 9876543222', email: 'purchase@agroprocessors.com', location: 'Punjab' },
-    ]);
-
-    // Consumers
-    setConsumers([
-      { id: 'CUST-3001', name: 'Amit Sharma', email: 'amit@example.com', orders: 12, totalSpent: '₹24,500', status: 'active', location: 'Delhi' },
-      { id: 'CUST-3002', name: 'Priya Patel', email: 'priya@example.com', orders: 8, totalSpent: '₹18,200', status: 'active', location: 'Mumbai' },
-      { id: 'CUST-3003', name: 'Raj Kumar', email: 'raj@example.com', orders: 5, totalSpent: '₹12,800', status: 'inactive', location: 'Bangalore' },
-    ]);
-
-    // Orders
-    setOrders([
-      { id: 'ORD-4001', farmer: 'Rajesh Kumar', buyer: 'FreshMart Stores', amount: '₹45,000', status: 'delivered', date: '2024-01-15' },
-      { id: 'ORD-4002', farmer: 'Priya Sharma', buyer: 'Green Leaf Restaurant', amount: '₹28,500', status: 'processing', date: '2024-01-16' },
-      { id: 'ORD-4003', farmer: 'Arun Patel', buyer: 'Agro Processors Ltd', amount: '₹67,000', status: 'pending', date: '2024-01-17' },
-    ]);
-
-    // Activities
-    setActivities([
-      { time: '10:30 AM', userType: 'Farmer', activity: 'New Registration', details: 'Rajesh Kumar - Punjab', status: 'completed' },
-      { time: '09:45 AM', userType: 'Business', activity: 'Bulk Order', details: 'Order #ORD-7845 - ₹2,45,000', status: 'processing' },
-      { time: 'Yesterday', userType: 'Consumer', activity: 'Complaint Filed', details: 'Quality issue with vegetables', status: 'pending' },
-    ]);
-
-    // Pending Approvals
-    setPendingApprovals([
-      { id: 'APP-1001', user: 'Gopal Singh', type: 'Farmer', request: 'Registration', submitted: '2 hours ago' },
-      { id: 'APP-1002', user: 'Spice Hub Restaurant', type: 'Business', request: 'Verification', submitted: '5 hours ago' },
-      { id: 'APP-1003', user: 'Mohan Lal', type: 'Farmer', request: 'Bank Update', submitted: '1 day ago' },
-    ]);
-
-    // Other data
-    setProducts([
-      { id: 'PROD-5001', name: 'Organic Wheat', category: 'Grains', price: '₹2,450/quintal', stock: '1200 quintals', farmer: 'Rajesh Kumar' },
-      { id: 'PROD-5002', name: 'Fresh Tomatoes', category: 'Vegetables', price: '₹1,800/quintal', stock: '800 quintals', farmer: 'Priya Sharma' },
-      { id: 'PROD-5003', name: 'Basmati Rice', category: 'Grains', price: '₹3,200/quintal', stock: '950 quintals', farmer: 'Suresh Reddy' },
-    ]);
-
-    setPayments([
-      { id: 'PAY-6001', order: 'ORD-4001', farmer: 'Rajesh Kumar', amount: '₹45,000', status: 'completed', date: '2024-01-15' },
-      { id: 'PAY-6002', order: 'ORD-4002', farmer: 'Priya Sharma', amount: '₹28,500', status: 'pending', date: '2024-01-16' },
-      { id: 'PAY-6003', order: 'ORD-4003', farmer: 'Arun Patel', amount: '₹67,000', status: 'processing', date: '2024-01-17' },
-    ]);
-
-    setLogistics([
-      { id: 'LOG-7001', order: 'ORD-4001', from: 'Punjab', to: 'Delhi', status: 'delivered', deliveryDate: '2024-01-16' },
-      { id: 'LOG-7002', order: 'ORD-4002', from: 'Maharashtra', to: 'Mumbai', status: 'in transit', estimatedDate: '2024-01-18' },
-      { id: 'LOG-7003', order: 'ORD-4003', from: 'Gujarat', to: 'Punjab', status: 'pending', estimatedDate: '2024-01-19' },
-    ]);
-
-    setSupport([
-      { id: 'TICK-8001', user: 'Amit Sharma', issue: 'Delivery delay', status: 'open', priority: 'high', created: '2024-01-15' },
-      { id: 'TICK-8002', user: 'Green Leaf Restaurant', issue: 'Quality concern', status: 'in progress', priority: 'medium', created: '2024-01-16' },
-      { id: 'TICK-8003', user: 'Rajesh Kumar', issue: 'Payment query', status: 'resolved', priority: 'low', created: '2024-01-14' },
-    ]);
-
-    setNotifications([
-      { id: 'NOTIF-9001', title: 'System Maintenance', message: 'Scheduled maintenance on Jan 20', type: 'system', read: false },
-      { id: 'NOTIF-9002', title: 'New Farmer Registration', message: 'New farmer registered: Gopal Singh', type: 'farmer', read: false },
-      { id: 'NOTIF-9003', title: 'Order Alert', message: 'Large order placed by FreshMart Stores', type: 'order', read: true },
-    ]);
-  };
-
-  const updateStats = () => {
-    setStats({
-      totalFarmers: farmers.length,
-      totalBuyers: buyers.length,
-      totalConsumers: consumers.length,
-      pendingOrders: orders.filter(o => o.status === 'pending').length,
-      todayRevenue: '₹8,42,156', // static for demo
+    // ============ STATE & INITIALIZATION ============
+    const [currentSection, setCurrentSection] = useState('overview');
+    const [notifications, setNotifications] = useState([]);
+    const [activeModal, setActiveModal] = useState(null); // 'register' or 'details'
+    const [registerType, setRegisterType] = useState('farmer'); // 'farmer' or 'buyer'
+    const [selectedDetails, setSelectedDetails] = useState(null); // { type, data }
+    const [revenuePeriod, setRevenuePeriod] = useState(6);
+    const [reportFromDate, setReportFromDate] = useState(() => {
+        const d = new Date();
+        d.setMonth(d.getMonth() - 5);
+        d.setDate(1);
+        return d.toISOString().split('T')[0];
     });
-  };
+    const [reportToDate, setReportToDate] = useState(() => new Date().toISOString().split('T')[0]);
+    const [reportPeriodLabel, setReportPeriodLabel] = useState('6 Months');
 
-  // ---------- Chart Initialization ----------
-  const initCharts = () => {
-    // User Growth Chart
-    if (growthChartRef.current) {
-      if (growthChartInstance.current) growthChartInstance.current.destroy();
-      growthChartInstance.current = new Chart(growthChartRef.current, {
-        type: 'line',
-        data: {
-          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-          datasets: [
-            { label: 'Farmers', data: [1200, 1900, 3000, 3500, 4200, 5247], borderColor: '#27ae60', backgroundColor: 'rgba(39, 174, 96, 0.1)', tension: 0.4 },
-            { label: 'Business Buyers', data: [800, 1200, 1500, 1650, 1800, 1846], borderColor: '#2d9cdb', backgroundColor: 'rgba(45, 156, 219, 0.1)', tension: 0.4 },
-            { label: 'Consumers', data: [8000, 12000, 16500, 20000, 22500, 24589], borderColor: '#f2994a', backgroundColor: 'rgba(242, 153, 74, 0.1)', tension: 0.4 },
-          ],
-        },
-        options: { responsive: true, maintainAspectRatio: false },
-      });
-    }
-
-    // Revenue Distribution Chart
-    if (revenueChartRef.current) {
-      if (revenueChartInstance.current) revenueChartInstance.current.destroy();
-      revenueChartInstance.current = new Chart(revenueChartRef.current, {
-        type: 'doughnut',
-        data: {
-          labels: ['Farmers Sales', 'Platform Commission', 'Logistics', 'Other Services'],
-          datasets: [{ data: [65, 15, 12, 8], backgroundColor: ['#27ae60', '#2d9cdb', '#f2994a', '#f2c94c'], borderWidth: 2 }],
-        },
-        options: { responsive: true, maintainAspectRatio: false },
-      });
-    }
-
-    // Crop Categories Chart
-    if (cropChartRef.current) {
-      if (cropChartInstance.current) cropChartInstance.current.destroy();
-      cropChartInstance.current = new Chart(cropChartRef.current, {
-        type: 'bar',
-        data: {
-          labels: ['Grains', 'Vegetables', 'Fruits', 'Pulses', 'Spices'],
-          datasets: [{
-            label: 'Sales Volume (Quintal)',
-            data: [12000, 8500, 6200, 4500, 3200],
-            backgroundColor: ['rgba(39,174,96,0.7)', 'rgba(45,156,219,0.7)', 'rgba(242,153,74,0.7)', 'rgba(242,201,76,0.7)', 'rgba(155,81,224,0.7)'],
-          }],
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } },
-      });
-    }
-
-    // Regional Distribution Chart
-    if (regionChartRef.current) {
-      if (regionChartInstance.current) regionChartInstance.current.destroy();
-      regionChartInstance.current = new Chart(regionChartRef.current, {
-        type: 'polarArea',
-        data: {
-          labels: ['North', 'South', 'East', 'West', 'Central'],
-          datasets: [{
-            label: 'Farmers Count',
-            data: [1850, 1240, 980, 760, 417],
-            backgroundColor: ['rgba(39,174,96,0.7)', 'rgba(45,156,219,0.7)', 'rgba(242,153,74,0.7)', 'rgba(242,201,76,0.7)', 'rgba(155,81,224,0.7)'],
-          }],
-        },
-        options: { responsive: true, maintainAspectRatio: false },
-      });
-    }
-  };
-
-  // ---------- Helper Functions ----------
-  const showAlert = (message, type = 'success') => {
-    setAlert({ show: true, message, type });
-    setTimeout(() => setAlert({ show: false, message: '', type: 'success' }), 5000);
-  };
-
-  const showLoading = (show) => setLoading(show);
-
-  const safeRender = (text) => {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-  };
-
-  // ---------- Section Switching ----------
-  const loadSection = (section) => {
-    setCurrentSection(section);
-    setSidebarActive(false);
-  };
-
-  // ---------- Search ----------
-  const performSearch = (term) => {
-    const results = [];
-    farmers.forEach(f => {
-      if (f.name.toLowerCase().includes(term) || f.location.toLowerCase().includes(term) || f.crops.toLowerCase().includes(term)) {
-        results.push({ type: 'Farmer', id: f.id, name: f.name, detail: f.location, action: () => viewFarmer(f.id) });
-      }
+    const [registerForm, setRegisterForm] = useState({
+        name: '',
+        location: '',
+        email: '',
+        phone: ''
     });
-    buyers.forEach(b => {
-      if (b.name.toLowerCase().includes(term) || b.contact.toLowerCase().includes(term)) {
-        results.push({ type: 'Business Buyer', id: b.id, name: b.name, detail: b.type, action: () => viewBuyer(b.id) });
-      }
+    const [farmers, setFarmers] = useState([]);
+    const [buyers, setBuyers] = useState([]);
+    const [transactions, setTransactions] = useState([]);
+    const [reportTransactions, setReportTransactions] = useState([]);
+
+    // Chart refs and instances
+    const revenueChartInstance = useRef(null);
+    const userChartInstance = useRef(null);
+    const detailedRevenueChartInstance = useRef(null);
+
+    const revenueCanvasRef = useRef(null);
+    const userCanvasRef = useRef(null);
+    const detailedRevenueCanvasRef = useRef(null);
+
+    // ============ DATABASE FETCH ============
+    const fetchDBData = async () => {
+        try {
+            // Fetch farmers
+            const { data: dbFarmers, error: fErr } = await supabase.from('farmers').select('*');
+            if (fErr) throw fErr;
+
+            // Fetch buyers
+            const { data: dbBuyers, error: bErr } = await supabase.from('businesses').select('*');
+            if (bErr) throw bErr;
+
+            // Fetch products
+            const { data: dbProducts, error: pErr } = await supabase.from('products').select('*');
+            if (pErr) throw pErr;
+
+            // Fetch orders
+            const { data: dbOrders, error: oErr } = await supabase.from('orders').select('*');
+            if (oErr) throw oErr;
+
+            // Parse and structure orders into transactions
+            const mappedTransactions = (dbOrders || []).map(order => {
+                const farmerObj = (dbFarmers || []).find(f => f.user_id === order.farmer_id || f.id === order.farmer_id);
+                const buyerObj = (dbBuyers || []).find(b => b.user_id === order.buyer_id || b.id === order.buyer_id);
+
+                return {
+                    id: order.id,
+                    amount: parseFloat(order.amount || 0),
+                    date: order.created_at ? order.created_at.split('T')[0] : (order.date || new Date().toISOString().split('T')[0]),
+                    farmerId: order.farmer_id,
+                    farmerName: farmerObj ? (farmerObj.farm_name || farmerObj.full_name) : (order.farmer_name || 'Unknown Farmer'),
+                    buyerId: order.buyer_id,
+                    buyerName: order.buyer || (buyerObj ? (buyerObj.business_name || buyerObj.full_name) : 'Unknown Buyer'),
+                    product: order.product || 'Fresh Produce',
+                    quantity: parseFloat(order.quantity || 0),
+                    status: order.status || 'pending'
+                };
+            });
+
+            // Map and calculate farmers
+            const mappedFarmers = (dbFarmers || []).map((f, index) => {
+                const farmerProductsCount = (dbProducts || []).filter(p => p.farmer_id === f.user_id || p.farmer_id === f.id).length;
+                const farmerRevenue = mappedTransactions
+                    .filter(t => (t.farmerId === f.user_id || t.farmerId === f.id) && t.status !== 'cancelled')
+                    .reduce((sum, t) => sum + t.amount, 0);
+
+                const initials = getFarmerInitials(f.farm_name || f.full_name);
+                const displayId = `${initials} - FRM - ${String(index + 1).padStart(3, '0')}`;
+
+                return {
+                    id: f.id || f.user_id,
+                    displayId: displayId,
+                    dbId: f.id,
+                    userId: f.user_id,
+                    name: f.farm_name || f.full_name || 'Green Valley Farm',
+                    fullName: f.full_name || '',
+                    location: f.state || f.village || 'India',
+                    products: farmerProductsCount,
+                    revenue: farmerRevenue,
+                    status: 'active',
+                    joined: f.created_at ? f.created_at.split('T')[0] : '2026-01-01',
+                    email: f.email || '',
+                    phone: f.phone || '',
+                    description: f.selected_crops ? `Grows: ${f.selected_crops}` : 'Organic farmer partner',
+                    rating: 4.8
+                };
+            });
+
+            // Map and calculate buyers
+            const mappedBuyers = (dbBuyers || []).map((b, index) => {
+                const buyerOrders = mappedTransactions.filter(t => t.buyerId === b.user_id || t.buyerId === b.id);
+                const buyerSpent = buyerOrders
+                    .filter(t => t.status !== 'cancelled')
+                    .reduce((sum, t) => sum + t.amount, 0);
+
+                const initials = getFarmerInitials(b.business_name || b.full_name);
+                const displayId = `${initials} - BYR - ${String(index + 1).padStart(3, '0')}`;
+
+                return {
+                    id: b.id || b.user_id,
+                    displayId: displayId,
+                    dbId: b.id,
+                    userId: b.user_id,
+                    name: b.business_name || b.full_name || 'Fresh Mart',
+                    fullName: b.full_name || '',
+                    location: b.state || 'India',
+                    orders: buyerOrders.length,
+                    spent: buyerSpent,
+                    status: 'active',
+                    joined: b.created_at ? b.created_at.split('T')[0] : '2026-01-01',
+                    email: b.email || '',
+                    phone: b.phone || '',
+                    type: b.business_type || 'Wholesaler',
+                    gst: b.gst_number || 'N/A'
+                };
+            });
+
+            setFarmers(mappedFarmers);
+            setBuyers(mappedBuyers);
+            setTransactions(mappedTransactions);
+
+        } catch (error) {
+            console.error("Error loading database data:", error);
+            showNotification(`Failed to load database: ${error.message || error}`);
+        }
+    };
+
+    // ============ EFFECTS ============
+    // Load initial data on mount
+    useEffect(() => {
+        fetchDBData();
+    }, []);
+
+    // Handle performance report period auto-calculation
+    useEffect(() => {
+        if (reportPeriodLabel !== 'Custom Range') {
+            const currentDate = new Date();
+            let fromDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - revenuePeriod + 1, 1);
+            let fromDateStr = fromDate.toISOString().split('T')[0];
+            let toDateStr = currentDate.toISOString().split('T')[0];
+
+            let filtered = transactions.filter(t => t.date >= fromDateStr && t.date <= toDateStr);
+            setReportTransactions(filtered);
+            setReportPeriodLabel(`${revenuePeriod} Months`);
+        }
+    }, [revenuePeriod, transactions, currentSection]);
+
+    // Overview Section charts rendering
+    useEffect(() => {
+        if (currentSection === 'overview') {
+            const revData = getMonthlyRevenueData(6);
+            if (revenueCanvasRef.current) {
+                if (revenueChartInstance.current) {
+                    revenueChartInstance.current.destroy();
+                }
+                revenueChartInstance.current = new Chart(revenueCanvasRef.current, {
+                    type: 'line',
+                    data: {
+                        labels: revData.labels,
+                        datasets: [{
+                            label: 'Revenue (₹)',
+                            data: revData.data,
+                            borderColor: '#27ae60',
+                            backgroundColor: 'rgba(39, 174, 96, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+
+            const activeFarmers = farmers.filter(f => f.status === 'active').length;
+            const inactiveFarmers = farmers.length - activeFarmers;
+            const activeBuyers = buyers.filter(b => b.status === 'active').length;
+            const inactiveBuyers = buyers.length - activeBuyers;
+
+            if (userCanvasRef.current) {
+                if (userChartInstance.current) {
+                    userChartInstance.current.destroy();
+                }
+                userChartInstance.current = new Chart(userCanvasRef.current, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Active Farmers', 'Inactive Farmers', 'Active Buyers', 'Inactive Buyers'],
+                        datasets: [{
+                            data: [activeFarmers, inactiveFarmers, activeBuyers, inactiveBuyers],
+                            backgroundColor: ['#27ae60', '#e74c3c', '#3498db', '#95a5a6']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+        }
+    }, [currentSection, farmers, buyers, transactions]);
+
+    // Revenue Section charts rendering
+    useEffect(() => {
+        if (currentSection === 'revenue') {
+            const revData = getMonthlyRevenueData(revenuePeriod);
+            if (detailedRevenueCanvasRef.current) {
+                if (detailedRevenueChartInstance.current) {
+                    detailedRevenueChartInstance.current.destroy();
+                }
+                detailedRevenueChartInstance.current = new Chart(detailedRevenueCanvasRef.current, {
+                    type: 'bar',
+                    data: {
+                        labels: revData.labels,
+                        datasets: [{
+                            label: 'Revenue (₹)',
+                            data: revData.data,
+                            backgroundColor: '#27ae60',
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+        }
+    }, [currentSection, revenuePeriod, transactions]);
+
+    // Clean up chart references on unmount
+    useEffect(() => {
+        return () => {
+            if (revenueChartInstance.current) revenueChartInstance.current.destroy();
+            if (userChartInstance.current) userChartInstance.current.destroy();
+            if (detailedRevenueChartInstance.current) detailedRevenueChartInstance.current.destroy();
+        };
+    }, []);
+
+    // ============ UTILITIES ============
+    const formatCurrency = (amt) => '₹' + parseFloat(amt).toLocaleString('en-IN');
+    const formatDate = (dateStr) => {
+        if (!dateStr) return '';
+        return new Date(dateStr).toLocaleDateString('en-IN');
+    };
+
+    const showNotification = (msg) => {
+        const id = Date.now();
+        setNotifications(prev => [...prev, { id, message: msg }]);
+        setTimeout(() => {
+            setNotifications(prev => prev.filter(n => n.id !== id));
+        }, 3000);
+    };
+
+    const getMonthlyRevenueData = (months = 6) => {
+        const monthly = {};
+        transactions.forEach(t => {
+            let month = t.date.slice(0, 7);
+            monthly[month] = (monthly[month] || 0) + t.amount;
+        });
+
+        const labels = [];
+        const data = [];
+        const currentDate = new Date();
+
+        for (let i = months - 1; i >= 0; i--) {
+            let d = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+            let year = d.getFullYear();
+            let month = d.getMonth() + 1;
+            let monthStr = year + '-' + String(month).padStart(2, '0');
+            let monthName = d.toLocaleString('default', { month: 'short' });
+            labels.push(monthName + ' ' + year);
+            data.push(monthly[monthStr] || 0);
+        }
+        return { labels, data };
+    };
+
+    // ============ HANDLERS ============
+    const refreshData = () => {
+        fetchDBData();
+        showNotification('Dashboard refreshed with latest data!');
+    };
+
+    const toggleFarmerStatus = (id) => {
+        const farmer = farmers.find(f => f.id === id || f.userId === id);
+        if (farmer) {
+            const nextStatus = farmer.status === 'active' ? 'inactive' : 'active';
+            showNotification(`Farmer ${farmer.name} is now ${nextStatus}`);
+            setFarmers(prev => prev.map(f => {
+                if (f.id === id || f.userId === id) {
+                    return { ...f, status: nextStatus };
+                }
+                return f;
+            }));
+        }
+    };
+
+    const toggleBuyerStatus = (id) => {
+        const buyer = buyers.find(b => b.id === id || b.userId === id);
+        if (buyer) {
+            const nextStatus = buyer.status === 'active' ? 'inactive' : 'active';
+            showNotification(`Buyer ${buyer.name} is now ${nextStatus}`);
+            setBuyers(prev => prev.map(b => {
+                if (b.id === id || b.userId === id) {
+                    return { ...b, status: nextStatus };
+                }
+                return b;
+            }));
+        }
+    };
+
+    const removeFarmer = async (id) => {
+        if (window.confirm('Remove this farmer permanently from the database?')) {
+            try {
+                // Delete from DB by numerical ID or user_id
+                const { error: delErr } = await supabase.from('farmers').delete().or(`id.eq.${id},user_id.eq.${id}`);
+                if (delErr) throw delErr;
+                showNotification('Farmer removed from Supabase');
+                fetchDBData();
+            } catch (err) {
+                console.error("Error removing farmer:", err);
+                showNotification(`Removal failed: ${err.message || err}`);
+            }
+        }
+    };
+
+    const removeBuyer = async (id) => {
+        if (window.confirm('Remove this buyer permanently from the database?')) {
+            try {
+                // Delete from DB by numerical ID or user_id
+                const { error: delErr } = await supabase.from('businesses').delete().or(`id.eq.${id},user_id.eq.${id}`);
+                if (delErr) throw delErr;
+                showNotification('Buyer removed from Supabase');
+                fetchDBData();
+            } catch (err) {
+                console.error("Error removing buyer:", err);
+                showNotification(`Removal failed: ${err.message || err}`);
+            }
+        }
+    };
+
+    const openRegisterModal = (type) => {
+        setRegisterType(type);
+        setRegisterForm({ name: '', location: '', email: '', phone: '' });
+        setActiveModal('register');
+    };
+
+    const submitRegistration = async (e) => {
+        e.preventDefault();
+        try {
+            if (registerType === 'farmer') {
+                const { error: insErr } = await supabase.from("farmers").insert([{
+                    full_name: registerForm.name,
+                    farm_name: registerForm.name,
+                    email: registerForm.email,
+                    phone: registerForm.phone,
+                    state: registerForm.location
+                }]);
+                if (insErr) throw insErr;
+                showNotification(`Farmer "${registerForm.name}" registered in Supabase!`);
+            } else {
+                const { error: insErr } = await supabase.from("businesses").insert([{
+                    full_name: registerForm.name,
+                    business_name: registerForm.name,
+                    email: registerForm.email,
+                    phone: registerForm.phone,
+                    state: registerForm.location
+                }]);
+                if (insErr) throw insErr;
+                showNotification(`Buyer "${registerForm.name}" registered in Supabase!`);
+            }
+            fetchDBData();
+            setActiveModal(null);
+        } catch (err) {
+            console.error("Error registering user:", err);
+            showNotification(`Registration failed: ${err.message || err}`);
+        }
+    };
+
+    const viewFarmerDetails = (id) => {
+        const farmer = farmers.find(f => f.id === id || f.userId === id);
+        if (farmer) {
+            setSelectedDetails({ type: 'farmer', data: farmer });
+            setActiveModal('details');
+        }
+    };
+
+    const viewBuyerDetails = (id) => {
+        const buyer = buyers.find(b => b.id === id || b.userId === id);
+        if (buyer) {
+            setSelectedDetails({ type: 'buyer', data: buyer });
+            setActiveModal('details');
+        }
+    };
+
+    const applyReportFilter = () => {
+        if (reportFromDate && reportToDate) {
+            let filtered = transactions.filter(t => t.date >= reportFromDate && t.date <= reportToDate);
+            setReportTransactions(filtered);
+            setReportPeriodLabel('Custom Range');
+            showNotification('Report updated with date filter');
+        } else {
+            showNotification('Please select both from and to dates');
+        }
+    };
+
+    const resetReportFilter = () => {
+        setReportFromDate('');
+        setReportToDate('');
+        const currentDate = new Date();
+        let fromDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - revenuePeriod + 1, 1);
+        let fromDateStr = fromDate.toISOString().split('T')[0];
+        let toDateStr = currentDate.toISOString().split('T')[0];
+
+        let filtered = transactions.filter(t => t.date >= fromDateStr && t.date <= toDateStr);
+        setReportTransactions(filtered);
+        setReportPeriodLabel(`${revenuePeriod} Months`);
+        showNotification('Reset to revenue period');
+    };
+
+    const downloadPerformanceReport = async () => {
+        const element = document.getElementById('performanceReportContainer');
+        if (!element || !element.innerHTML) {
+            showNotification('No data to generate report');
+            return;
+        }
+        showNotification('Generating PDF report...');
+        const opt = {
+            margin: [0.5, 0.5, 0.5, 0.5],
+            filename: `farm_vantara_performance_report_${new Date().toISOString().split('T')[0]}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, backgroundColor: '#ffffff' },
+            jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
+        };
+        try {
+            await html2pdf().set(opt).from(element).save();
+            showNotification('PDF Report Downloaded Successfully!');
+        } catch (e) {
+            showNotification('Error generating PDF');
+        }
+    };
+
+    const logout = () => {
+        if (window.confirm('Logout from Admin Panel?')) {
+            localStorage.removeItem('farmvantara_token');
+            localStorage.removeItem('farmvantara_user');
+            sessionStorage.removeItem('farmvantara_token');
+            sessionStorage.removeItem('farmvantara_user');
+            showNotification('Logged out successfully!');
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 1000);
+        }
+    };
+
+    // ============ RENDER COMPUTATIONS ============
+    const activeFarmers = farmers.filter(f => f.status === 'active').length;
+    const activeBuyers = buyers.filter(b => b.status === 'active').length;
+    const totalRevenue = transactions.reduce((sum, t) => sum + t.amount, 0);
+    const totalOrders = transactions.length;
+    const totalProducts = farmers.reduce((sum, f) => sum + f.products, 0);
+
+    const detailedRevData = getMonthlyRevenueData(revenuePeriod);
+    const totalDetailedRev = detailedRevData.data.reduce((a, b) => a + b, 0);
+    const avgDetailedRev = detailedRevData.data.length ? Math.round(totalDetailedRev / detailedRevData.data.length) : 0;
+
+    // Report Computations
+    const totalReportRevenue = reportTransactions.reduce((s, t) => s + t.amount, 0);
+    const totalReportOrders = reportTransactions.length;
+    const avgReportOrderValue = totalReportOrders > 0 ? totalReportRevenue / totalReportOrders : 0;
+
+    const monthlyReportData = {};
+    reportTransactions.forEach(t => {
+        const month = t.date.slice(0, 7);
+        if (!monthlyReportData[month]) monthlyReportData[month] = { revenue: 0, orders: 0 };
+        monthlyReportData[month].revenue += t.amount;
+        monthlyReportData[month].orders += 1;
     });
-    setSearchResults(results);
-    setShowSearchResults(true);
-  };
 
-  // ---------- Modal Handlers ----------
-  const openModal = (modal) => setModals(prev => ({ ...prev, [modal]: true }));
-  const closeModal = (modal) => {
-    setModals(prev => ({ ...prev, [modal]: false }));
-    // Reset forms
-    if (modal === 'addFarmer' && addFarmerFormRef.current) addFarmerFormRef.current.reset();
-    if (modal === 'verifyBuyer' && verifyBuyerFormRef.current) verifyBuyerFormRef.current.reset();
-    if (modal === 'issueRefund' && refundFormRef.current) refundFormRef.current.reset();
-    if (modal === 'sendNotification' && notificationFormRef.current) notificationFormRef.current.reset();
-    if (modal === 'systemSettings' && settingsFormRef.current) settingsFormRef.current.reset();
-  };
-
-  // ---------- CRUD Operations ----------
-  const addNewFarmer = (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const newFarmer = {
-      id: 'FARM-' + (1000 + farmers.length + 1),
-      name: formData.get('farmerName'),
-      location: `${formData.get('farmerDistrict')}, ${formData.get('farmerState')}`,
-      crops: formData.get('farmerCrops'),
-      totalSales: '₹0',
-      rating: '0.0',
-      status: 'pending',
-      phone: formData.get('farmerMobile'),
-      email: formData.get('farmerEmail'),
-      farmSize: formData.get('farmSize') + ' acres',
-      joined: new Date().toISOString().split('T')[0],
-      orders: 0,
-    };
-    setFarmers(prev => [newFarmer, ...prev]);
-    showAlert('Farmer added successfully! Verification pending.', 'success');
-    closeModal('addFarmer');
-  };
-
-  const verifyBusinessBuyer = (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const newBuyer = {
-      id: 'BIZ-' + (2000 + buyers.length + 1),
-      name: formData.get('businessName'),
-      contact: formData.get('contactPerson'),
-      type: formData.get('businessType'),
-      monthlySpend: `₹${parseInt(formData.get('monthlyProcurement')).toLocaleString()}`,
-      orders: 0,
-      status: 'verified',
-      gst: formData.get('gstNumber'),
-      phone: formData.get('contactNumber'),
-      email: '',
-      location: '',
-    };
-    setBuyers(prev => [newBuyer, ...prev]);
-    showAlert('Business buyer verified and added successfully!', 'success');
-    closeModal('verifyBuyer');
-  };
-
-  const processRefund = (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const amount = formData.get('refundAmount');
-    const orderId = formData.get('orderId');
-    showAlert(`Refund of ₹${amount} processed for order ${orderId}`, 'success');
-    // Add to activities
-    setActivities(prev => [{
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      userType: 'System',
-      activity: 'Refund Processed',
-      details: `₹${amount} for order ${orderId}`,
-      status: 'completed',
-    }, ...prev].slice(0, 50));
-    closeModal('issueRefund');
-  };
-
-  const sendNotification = (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const subject = formData.get('notificationSubject');
-    const type = formData.get('notificationType');
-    setActivities(prev => [{
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      userType: 'System',
-      activity: 'Notification Sent',
-      details: `${subject} to ${type}`,
-      status: 'completed',
-    }, ...prev].slice(0, 50));
-    showAlert('Notification sent successfully!', 'success');
-    closeModal('sendNotification');
-  };
-
-  const saveSystemSettings = (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const settings = {
-      commission: formData.get('platformCommission'),
-      paymentDelay: formData.get('paymentDelay'),
-      minOrder: formData.get('minOrderValue'),
-      autoVerify: formData.get('autoVerification'),
-      language: formData.get('defaultLanguage'),
-    };
-    localStorage.setItem('farmvantara_settings', JSON.stringify(settings));
-    showAlert('System settings saved successfully!', 'success');
-    closeModal('systemSettings');
-  };
-
-  // View details
-  const viewFarmer = (farmerId) => {
-    // For simplicity, we just show alert – in a real app we'd navigate to detail view
-    showAlert(`Viewing farmer ${farmerId}`, 'info');
-  };
-
-  const viewBuyer = (buyerId) => {
-    showAlert(`Viewing buyer ${buyerId}`, 'info');
-  };
-
-  const editFarmer = (farmerId) => {
-    showAlert(`Edit farmer ${farmerId}`, 'info');
-    openModal('addFarmer');
-  };
-
-  const editBuyer = (buyerId) => {
-    showAlert(`Edit buyer ${buyerId}`, 'info');
-    openModal('verifyBuyer');
-  };
-
-  const deleteFarmer = (farmerId) => {
-    if (window.confirm('Are you sure you want to delete this farmer?')) {
-      setFarmers(prev => prev.filter(f => f.id !== farmerId));
-      showAlert('Farmer deleted successfully!', 'success');
-    }
-  };
-
-  const approveRequest = (requestId) => {
-    showAlert(`Request ${requestId} approved!`, 'success');
-    setPendingApprovals(prev => prev.filter(r => r.id !== requestId));
-  };
-
-  const rejectRequest = (requestId) => {
-    showAlert(`Request ${requestId} rejected!`, 'error');
-    setPendingApprovals(prev => prev.filter(r => r.id !== requestId));
-  };
-
-  const generateReport = () => {
-    showLoading(true);
-    setTimeout(() => {
-      const reportData = {
-        timestamp: new Date().toISOString(),
-        farmers: farmers.length,
-        buyers: buyers.length,
-        consumers: consumers.length,
-        pendingOrders: orders.filter(o => o.status === 'pending').length,
-      };
-      const dataStr = JSON.stringify(reportData, null, 2);
-      const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-      const link = document.createElement('a');
-      link.setAttribute('href', dataUri);
-      link.setAttribute('download', `farmvantara_report_${new Date().toISOString().split('T')[0]}.json`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      showLoading(false);
-      showAlert('Report generated and downloaded successfully!', 'success');
-    }, 2000);
-  };
-
-  const exportData = (type, format) => {
-    showAlert(`Exporting ${type} data as ${format.toUpperCase()}... (demo)`, 'info');
-  };
-
-  const simulateRealTimeUpdates = () => {
-    // Randomly update stats
-    setStats(prev => ({
-      ...prev,
-      totalFarmers: prev.totalFarmers + Math.floor(Math.random() * 3),
-      totalBuyers: prev.totalBuyers + Math.floor(Math.random() * 2),
-      totalConsumers: prev.totalConsumers + Math.floor(Math.random() * 10),
+    const monthlyReportBreakdown = Object.entries(monthlyReportData).sort().map(([month, data]) => ({
+        month: new Date(month + '-01').toLocaleString('default', { month: 'long', year: 'numeric' }),
+        revenue: data.revenue,
+        orders: data.orders
     }));
-    // Add a random activity
-    const activitiesList = ['New Order', 'Farmer Registration', 'Payment Received', 'Support Ticket', 'Product Listing'];
-    const users = ['Farmer', 'Business', 'Consumer', 'System'];
-    const newActivity = {
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      userType: users[Math.floor(Math.random() * users.length)],
-      activity: activitiesList[Math.floor(Math.random() * activitiesList.length)],
-      details: 'Automated update from system',
-      status: 'completed',
-    };
-    setActivities(prev => [newActivity, ...prev].slice(0, 50));
-  };
 
-  const logout = () => {
-    if (window.confirm('Are you sure you want to logout?')) {
-      showLoading(true);
-      setTimeout(() => {
-        window.location.href = '/login';
-      }, 1000);
+    const farmerReportPerformance = farmers.map(f => {
+        const farmerRevenue = reportTransactions.filter(t => t.farmerId === f.id).reduce((s, t) => s + t.amount, 0);
+        const farmerOrders = reportTransactions.filter(t => t.farmerId === f.id).length;
+        return { name: f.name, revenue: farmerRevenue, orders: farmerOrders, rating: f.rating, status: f.status };
+    }).filter(fp => fp.revenue > 0 || fp.orders > 0).sort((a, b) => b.revenue - a.revenue);
+
+    const buyerReportPerformance = buyers.map(b => {
+        const buyerSpent = reportTransactions.filter(t => t.buyerId === b.id).reduce((s, t) => s + t.amount, 0);
+        const buyerOrders = reportTransactions.filter(t => t.buyerId === b.id).length;
+        return { name: b.name, spent: buyerSpent, orders: buyerOrders, type: b.type, status: b.status };
+    }).filter(bp => bp.spent > 0).sort((a, b) => b.spent - a.spent);
+
+    const monthsList = Object.keys(monthlyReportData).sort();
+    let growthMessage = "Insufficient data for growth analysis";
+    let topFarmerName = farmerReportPerformance[0]?.name || "N/A";
+    let topBuyerName = buyerReportPerformance[0]?.name || "N/A";
+
+    if (monthsList.length >= 2) {
+        const firstMonthRev = monthlyReportData[monthsList[0]]?.revenue || 0;
+        const lastMonthRev = monthlyReportData[monthsList[monthsList.length - 1]]?.revenue || 0;
+        const growthPercent = firstMonthRev > 0 ? ((lastMonthRev - firstMonthRev) / firstMonthRev * 100).toFixed(1) : 0;
+        growthMessage = growthPercent >= 0 ? `📈 Revenue grew by ${growthPercent}% over the period` : `📉 Revenue declined by ${Math.abs(growthPercent)}% over the period`;
     }
-  };
 
-  // ---------- Table Columns ----------
-  const activitiesColumns = [
-    { name: 'Time', selector: row => row.time, sortable: true },
-    { name: 'User Type', selector: row => row.userType, sortable: true },
-    { name: 'Activity', selector: row => row.activity, sortable: true },
-    { name: 'Details', selector: row => row.details, sortable: true },
-    {
-      name: 'Status',
-      selector: row => row.status,
-      cell: row => <span className={`status-badge status-${row.status}`}>{row.status.charAt(0).toUpperCase() + row.status.slice(1)}</span>,
-    },
-  ];
+    return (
+        <div className="admin-dashboard-page-container">
+            {/* Embedded styles to guarantee identical vanilla looks */}
+            <style>{`
+                :root {
+                    --primary-green: #27ae60;
+                    --dark-green: #219653;
+                    --light-green: #6fcf97;
+                    --accent-blue: #2980b9;
+                    --accent-orange: #f39c12;
+                    --accent-red: #e74c3c;
+                    --dark-blue: #2c3e50;
+                    --light-gray: #f8f9fa;
+                    --medium-gray: #dfe6e9;
+                    --text-dark: #2d3436;
+                    --text-light: #636e72;
+                    --white: #ffffff;
+                    --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+                    --shadow-hover: 0 20px 40px rgba(0, 0, 0, 0.12);
+                    --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+                    --gradient-primary: linear-gradient(135deg, var(--primary-green) 0%, var(--dark-green) 100%);
+                    --gradient-admin: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+                }
 
-  const approvalsColumns = [
-    { name: 'ID', selector: row => row.id, sortable: true },
-    { name: 'User', selector: row => row.user, sortable: true },
-    { name: 'Type', selector: row => row.type, sortable: true },
-    { name: 'Request', selector: row => row.request, sortable: true },
-    { name: 'Submitted', selector: row => row.submitted, sortable: true },
-    {
-      name: 'Action',
-      cell: row => (
-        <div style={{ display: 'flex', gap: '5px' }}>
-          <button className="btn btn-primary btn-sm" onClick={() => approveRequest(row.id)}>
-            <i className="fas fa-check"></i>
-          </button>
-          <button className="btn btn-danger btn-sm" onClick={() => rejectRequest(row.id)}>
-            <i className="fas fa-times"></i>
-          </button>
-        </div>
-      ),
-    },
-  ];
+                .admin-dashboard-page-container {
+                    font-family: 'Open Sans', sans-serif;
+                    line-height: 1.6;
+                    color: var(--text-dark);
+                    background-color: #f0f2f5;
+                    overflow-x: hidden;
+                    min-height: 100vh;
+                }
 
-  const farmersColumns = [
-    { name: 'ID', selector: row => row.id, sortable: true },
-    { name: 'Name', selector: row => row.name, sortable: true },
-    { name: 'Location', selector: row => row.location, sortable: true },
-    { name: 'Crops', selector: row => row.crops, sortable: true },
-    { name: 'Total Sales', selector: row => row.totalSales, sortable: true },
-    { name: 'Rating', selector: row => row.rating, sortable: true },
-    {
-      name: 'Status',
-      selector: row => row.status,
-      cell: row => <span className={`status-badge status-${row.status}`}>{row.status.charAt(0).toUpperCase() + row.status.slice(1)}</span>,
-    },
-    {
-      name: 'Actions',
-      cell: row => (
-        <div style={{ display: 'flex', gap: '5px' }}>
-          <button className="btn btn-secondary btn-sm" onClick={() => viewFarmer(row.id)}><i className="fas fa-eye"></i></button>
-          <button className="btn btn-primary btn-sm" onClick={() => editFarmer(row.id)}><i className="fas fa-edit"></i></button>
-          <button className="btn btn-danger btn-sm" onClick={() => deleteFarmer(row.id)}><i className="fas fa-trash"></i></button>
-        </div>
-      ),
-    },
-  ];
+                .admin-dashboard-page-container h1,
+                .admin-dashboard-page-container h2,
+                .admin-dashboard-page-container h3,
+                .admin-dashboard-page-container h4,
+                .admin-dashboard-page-container h5 {
+                    font-family: 'Poppins', sans-serif;
+                    font-weight: 700;
+                    line-height: 1.3;
+                }
 
-  const buyersColumns = [
-    { name: 'ID', selector: row => row.id, sortable: true },
-    { name: 'Business Name', selector: row => row.name, sortable: true },
-    { name: 'Contact', selector: row => row.contact, sortable: true },
-    { name: 'Type', selector: row => row.type, sortable: true },
-    { name: 'Monthly Spend', selector: row => row.monthlySpend, sortable: true },
-    { name: 'Orders', selector: row => row.orders, sortable: true },
-    {
-      name: 'Status',
-      selector: row => row.status,
-      cell: row => <span className={`status-badge status-${row.status}`}>{row.status.charAt(0).toUpperCase() + row.status.slice(1)}</span>,
-    },
-    {
-      name: 'Actions',
-      cell: row => (
-        <div style={{ display: 'flex', gap: '5px' }}>
-          <button className="btn btn-secondary btn-sm" onClick={() => viewBuyer(row.id)}><i className="fas fa-eye"></i></button>
-          <button className="btn btn-primary btn-sm" onClick={() => editBuyer(row.id)}><i className="fas fa-edit"></i></button>
-        </div>
-      ),
-    },
-  ];
+                .main-header {
+                    background: var(--gradient-admin);
+                    position: sticky;
+                    top: 0;
+                    z-index: 1000;
+                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+                }
 
-  // ---------- JSX ----------
-  return (
-    <div className="admin-dashboard">
-      {/* Alert */}
-      {alert.show && (
-        <div className={`alert alert-${alert.type} active`}>{alert.message}</div>
-      )}
+                .navbar {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 12px 20px;
+                }
 
-      {/* Loading Spinner */}
-      {loading && (
-        <div className="loading-spinner active">
-          <div className="spinner"></div>
-          <p>Loading data...</p>
-        </div>
-      )}
+                .logo {
+                    display: flex;
+                    align-items: center;
+                    text-decoration: none;
+                    gap: 12px;
+                }
 
-      <div className="dashboard-container">
-        {/* Sidebar */}
-        <aside className={`sidebar ${sidebarActive ? 'active' : ''}`}>
-          <div className="sidebar-header">
-            <div className="admin-logo"><i className="fas fa-user-shield"></i></div>
-            <div className="admin-name">Admin User</div>
-            <div className="admin-role">Super Administrator</div>
-          </div>
-          <nav className="sidebar-menu">
-            {[
-              { section: 'dashboard', icon: 'fa-tachometer-alt', label: 'Dashboard', badge: null },
-              { section: 'farmers', icon: 'fa-tractor', label: 'Farmers Management', badge: farmers.filter(f => f.status === 'pending').length },
-              { section: 'buyers', icon: 'fa-building', label: 'Buyers Management', badge: buyers.filter(b => b.status === 'pending').length },
-              { section: 'consumers', icon: 'fa-users', label: 'Consumers Management', badge: null },
-              { section: 'orders', icon: 'fa-shopping-cart', label: 'Orders & Transactions', badge: orders.filter(o => o.status === 'pending').length },
-              { section: 'products', icon: 'fa-seedling', label: 'Products & Listings', badge: null },
-              { section: 'payments', icon: 'fa-credit-card', label: 'Payments & Settlements', badge: null },
-              { section: 'logistics', icon: 'fa-truck', label: 'Logistics & Delivery', badge: null },
-              { section: 'reports', icon: 'fa-chart-bar', label: 'Analytics & Reports', badge: null },
-              { section: 'support', icon: 'fa-headset', label: 'Support & Tickets', badge: support.filter(t => t.status === 'open').length },
-              { section: 'settings', icon: 'fa-cog', label: 'System Settings', badge: null },
-            ].map(item => (
-              <a
-                key={item.section}
-                href="#"
-                className={`menu-item ${currentSection === item.section ? 'active' : ''}`}
-                onClick={(e) => { e.preventDefault(); loadSection(item.section); }}
-              >
-                <i className={`fas ${item.icon}`}></i>
-                <span>{item.label}</span>
-                {item.badge > 0 && <span className="menu-badge">{item.badge}</span>}
-              </a>
-            ))}
-            <div className="menu-item logout-btn" onClick={logout}>
-              <i className="fas fa-sign-out-alt"></i>
-              <span>Logout</span>
+                .logo-svg {
+                    width: 45px;
+                    height: 45px;
+                }
+
+                .logo-text {
+                    font-size: 22px;
+                    font-weight: 700;
+                    color: white;
+                }
+
+                .admin-badge-header {
+                    background: rgba(255, 255, 255, 0.2);
+                    padding: 8px 20px;
+                    border-radius: 50px;
+                    color: white;
+                    font-weight: 600;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                }
+
+                .logout-btn {
+                    background: rgba(231, 76, 60, 0.9);
+                    border: none;
+                    color: white;
+                    padding: 8px 18px;
+                    border-radius: 50px;
+                    cursor: pointer;
+                    font-weight: 600;
+                    transition: var(--transition);
+                }
+
+                .logout-btn:hover {
+                    background: #e74c3c;
+                    transform: scale(1.02);
+                }
+
+                .dashboard {
+                    display: flex;
+                    min-height: calc(100vh - 70px);
+                }
+
+                .sidebar {
+                    width: 280px;
+                    background: var(--white);
+                    box-shadow: 2px 0 20px rgba(0, 0, 0, 0.05);
+                    padding: 30px 20px;
+                    position: sticky;
+                    top: 70px;
+                    height: calc(100vh - 70px);
+                    overflow-y: auto;
+                }
+
+                .sidebar-header {
+                    margin-bottom: 30px;
+                    padding-bottom: 20px;
+                    border-bottom: 1px solid var(--medium-gray);
+                }
+
+                .sidebar-header h2 {
+                    font-size: 1.3rem;
+                    color: var(--dark-green);
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                }
+
+                .sidebar-nav ul {
+                    list-style: none;
+                }
+
+                .sidebar-nav li {
+                    margin-bottom: 8px;
+                }
+
+                .sidebar-nav a {
+                    display: flex;
+                    align-items: center;
+                    gap: 15px;
+                    padding: 14px 18px;
+                    color: var(--text-light);
+                    text-decoration: none;
+                    border-radius: 12px;
+                    transition: var(--transition);
+                    font-weight: 500;
+                    font-size: 14px;
+                    cursor: pointer;
+                }
+
+                .sidebar-nav a:hover {
+                    background: rgba(39, 174, 96, 0.1);
+                    color: var(--primary-green);
+                }
+
+                .sidebar-nav a.active {
+                    background: var(--gradient-primary);
+                    color: white;
+                    box-shadow: 0 5px 15px rgba(39, 174, 96, 0.2);
+                }
+
+                .sidebar-nav a i {
+                    width: 22px;
+                    text-align: center;
+                    font-size: 16px;
+                }
+
+                .main-content {
+                    flex: 1;
+                    padding: 30px;
+                    overflow-y: auto;
+                }
+
+                .dashboard-section {
+                    background: var(--white);
+                    border-radius: 20px;
+                    padding: 25px;
+                    margin-bottom: 25px;
+                    box-shadow: var(--shadow);
+                }
+
+                .section-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 20px;
+                    padding-bottom: 15px;
+                    border-bottom: 1px solid var(--medium-gray);
+                    flex-wrap: wrap;
+                    gap: 15px;
+                }
+
+                .section-header h2 {
+                    font-size: 1.3rem;
+                    color: var(--dark-green);
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                }
+
+                .stats-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 20px;
+                    margin-bottom: 30px;
+                }
+
+                .stat-card {
+                    background: var(--white);
+                    border-radius: 15px;
+                    padding: 20px;
+                    box-shadow: var(--shadow);
+                    transition: var(--transition);
+                    border-left: 4px solid var(--primary-green);
+                }
+
+                .stat-card:hover {
+                    transform: translateY(-3px);
+                    box-shadow: var(--shadow-hover);
+                }
+
+                .stat-value {
+                    font-size: 28px;
+                    font-weight: 700;
+                    margin-top: 10px;
+                }
+
+                .stat-label {
+                    font-size: 12px;
+                    color: var(--text-light);
+                }
+
+                .charts-row {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+                    gap: 25px;
+                    margin-bottom: 30px;
+                }
+
+                .chart-card {
+                    background: var(--white);
+                    border-radius: 20px;
+                    padding: 20px;
+                    box-shadow: var(--shadow);
+                }
+
+                .chart-card h3 {
+                    margin-bottom: 20px;
+                    color: var(--dark-green);
+                }
+
+                .table-container {
+                    overflow-x: auto;
+                }
+
+                .data-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                }
+
+                .data-table th,
+                .data-table td {
+                    padding: 12px;
+                    text-align: left;
+                    border-bottom: 1px solid var(--medium-gray);
+                    font-size: 13px;
+                }
+
+                .data-table th {
+                    background: var(--light-gray);
+                    font-weight: 600;
+                }
+
+                .status-badge {
+                    padding: 4px 12px;
+                    border-radius: 20px;
+                    font-size: 11px;
+                    font-weight: 600;
+                    display: inline-block;
+                }
+
+                .status-active {
+                    background: rgba(39, 174, 96, 0.2);
+                    color: #1e7e2f;
+                }
+
+                .status-inactive {
+                    background: rgba(231, 76, 60, 0.2);
+                    color: #c0392b;
+                }
+
+                .action-icons {
+                    display: flex;
+                    gap: 10px;
+                    align-items: center;
+                    flex-wrap: wrap;
+                }
+
+                .action-btn {
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 8px;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    border: none;
+                    font-size: 14px;
+                }
+
+                .action-btn:hover {
+                    transform: scale(1.05);
+                }
+
+                .btn-view {
+                    background: #3498db;
+                    color: white;
+                }
+
+                .btn-view:hover {
+                    background: #2980b9;
+                }
+
+                .btn-toggle-active {
+                    background: #27ae60;
+                    color: white;
+                }
+
+                .btn-toggle-active:hover {
+                    background: #1e7e34;
+                }
+
+                .btn-toggle-inactive {
+                    background: #e74c3c;
+                    color: white;
+                }
+
+                .btn-toggle-inactive:hover {
+                    background: #c0392b;
+                }
+
+                .btn-delete {
+                    background: #7f8c8d;
+                    color: white;
+                }
+
+                .btn-delete:hover {
+                    background: #95a5a6;
+                }
+
+                .btn {
+                    padding: 10px 20px;
+                    border: none;
+                    border-radius: 8px;
+                    font-family: 'Poppins', sans-serif;
+                    font-weight: 600;
+                    font-size: 13px;
+                    cursor: pointer;
+                    transition: var(--transition);
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 8px;
+                }
+
+                .btn-primary {
+                    background: var(--gradient-primary);
+                    color: white;
+                }
+
+                .btn-primary:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+                }
+
+                .btn-outline {
+                    background: transparent;
+                    border: 2px solid var(--primary-green);
+                    color: var(--primary-green);
+                }
+
+                .btn-sm {
+                    padding: 6px 12px;
+                    font-size: 11px;
+                }
+
+                .modal {
+                    display: none;
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.7);
+                    z-index: 2000;
+                    justify-content: center;
+                    align-items: center;
+                    padding: 20px;
+                }
+
+                .modal.active {
+                    display: flex;
+                }
+
+                .modal-content {
+                    background: var(--white);
+                    border-radius: 20px;
+                    padding: 30px;
+                    max-width: 550px;
+                    width: 90%;
+                    max-height: 90vh;
+                    overflow-y: auto;
+                }
+
+                .modal-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 20px;
+                    padding-bottom: 15px;
+                    border-bottom: 1px solid var(--medium-gray);
+                }
+
+                .details-card {
+                    background: linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%);
+                    border-radius: 16px;
+                    padding: 20px;
+                }
+
+                .details-row {
+                    display: flex;
+                    margin-bottom: 15px;
+                    padding-bottom: 10px;
+                    border-bottom: 1px solid var(--medium-gray);
+                }
+
+                .details-label {
+                    width: 130px;
+                    font-weight: 700;
+                    color: var(--dark-green);
+                }
+
+                .details-value {
+                    flex: 1;
+                    color: var(--text-dark);
+                }
+
+                .details-header {
+                    text-align: center;
+                    margin-bottom: 20px;
+                }
+
+                .details-header i {
+                    font-size: 60px;
+                    color: var(--primary-green);
+                    margin-bottom: 10px;
+                }
+
+                .stats-mini {
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 15px;
+                    margin: 20px 0;
+                }
+
+                .stat-mini-card {
+                    background: white;
+                    padding: 12px;
+                    border-radius: 12px;
+                    text-align: center;
+                }
+
+                .stat-mini-card .value {
+                    font-size: 20px;
+                    font-weight: 700;
+                    color: var(--primary-green);
+                }
+
+                .form-group {
+                    margin-bottom: 18px;
+                    text-align: left;
+                }
+
+                .form-group label {
+                    display: block;
+                    margin-bottom: 6px;
+                    font-weight: 600;
+                    font-size: 13px;
+                }
+
+                .form-group input,
+                .form-group select {
+                    width: 100%;
+                    padding: 10px 12px;
+                    border: 2px solid var(--medium-gray);
+                    border-radius: 10px;
+                    font-size: 13px;
+                }
+
+                .form-buttons {
+                    display: flex;
+                    justify-content: flex-end;
+                    gap: 12px;
+                    margin-top: 20px;
+                }
+
+                .report-preview {
+                    background: #ffffff;
+                    padding: 30px;
+                    border-radius: 20px;
+                    border: 1px solid var(--medium-gray);
+                    font-family: 'Poppins', sans-serif;
+                    text-align: left;
+                }
+
+                .report-header {
+                    text-align: center;
+                    margin-bottom: 30px;
+                    padding-bottom: 20px;
+                    border-bottom: 3px solid var(--primary-green);
+                }
+
+                .report-header h2 {
+                    color: var(--dark-green);
+                    font-size: 28px;
+                    margin-bottom: 10px;
+                }
+
+                .report-header .report-date {
+                    color: var(--text-light);
+                    font-size: 12px;
+                }
+
+                .report-summary-cards {
+                    display: grid;
+                    grid-template-columns: repeat(4, 1fr);
+                    gap: 20px;
+                    margin-bottom: 30px;
+                }
+
+                .report-summary-card {
+                    background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
+                    color: white;
+                    padding: 20px;
+                    border-radius: 16px;
+                    text-align: center;
+                }
+
+                .report-summary-card .value {
+                    font-size: 28px;
+                    font-weight: 700;
+                }
+
+                .report-summary-card .label {
+                    font-size: 12px;
+                    opacity: 0.9;
+                    margin-top: 5px;
+                }
+
+                .report-section {
+                    margin-bottom: 25px;
+                }
+
+                .report-section-title {
+                    font-size: 18px;
+                    color: var(--dark-green);
+                    margin-bottom: 15px;
+                    padding-bottom: 10px;
+                    border-bottom: 2px solid var(--primary-green);
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                }
+
+                .report-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-bottom: 20px;
+                }
+
+                .report-table th,
+                .report-table td {
+                    border: 1px solid var(--medium-gray);
+                    padding: 10px;
+                    text-align: left;
+                    font-size: 12px;
+                }
+
+                .report-table th {
+                    background: var(--light-gray);
+                    font-weight: 600;
+                }
+
+                .insight-box {
+                    background: #e8f5e9;
+                    padding: 15px;
+                    border-radius: 12px;
+                    margin: 20px 0;
+                }
+
+                .insight-box h4 {
+                    color: var(--dark-green);
+                    margin-bottom: 10px;
+                }
+
+                .report-footer {
+                    margin-top: 30px;
+                    text-align: center;
+                    padding-top: 20px;
+                    border-top: 1px solid var(--medium-gray);
+                    font-size: 11px;
+                    color: var(--text-light);
+                }
+
+                .admin-notifications-container {
+                     position: fixed;
+                     bottom: 20px;
+                     right: 20px;
+                     z-index: 9999;
+                     display: flex;
+                     flex-direction: column;
+                     gap: 10px;
+                 }
+
+                 .admin-notification {
+                     background: var(--white);
+                     padding: 12px 24px;
+                     border-radius: 10px;
+                     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+                     border-left: 4px solid var(--primary-green);
+                     display: flex;
+                     align-items: center;
+                     font-size: 14px;
+                     font-weight: 500;
+                     color: var(--text-dark);
+                     animation: slideInAdmin 0.3s ease-out;
+                     min-width: 280px;
+                     max-width: 380px;
+                 }
+
+                 @keyframes slideInAdmin {
+                     from {
+                         transform: translateX(100%);
+                         opacity: 0;
+                     }
+                     to {
+                         transform: translateX(0);
+                         opacity: 1;
+                     }
+                 }
+
+                @media (max-width: 1024px) {
+                    .dashboard {
+                        flex-direction: column;
+                    }
+
+                    .sidebar {
+                        width: 100%;
+                        height: auto;
+                        position: static;
+                        padding: 20px;
+                    }
+
+                    .sidebar-nav ul {
+                        display: flex;
+                        flex-wrap: wrap;
+                        gap: 10px;
+                    }
+
+                    .main-content {
+                        padding: 20px;
+                    }
+
+                    .charts-row {
+                        grid-template-columns: 1fr;
+                    }
+
+                    .report-summary-cards {
+                        grid-template-columns: repeat(2, 1fr);
+                    }
+                }
+            `}</style>
+
+            <header className="main-header">
+                <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+                    <nav className="navbar">
+                        <a href="#" className="logo">
+                            <img src={logo} alt="Farm Vantara Logo" style={{ height: '45px', width: 'auto', objectFit: 'contain' }} />
+                        </a>
+                        <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+                            <div className="admin-badge-header"><i className="fas fa-shield-alt"></i> Super Administrator</div>
+                            <button className="logout-btn" onClick={logout}><i className="fas fa-sign-out-alt"></i> Logout</button>
+                        </div>
+                    </nav>
+                </div>
+            </header>
+
+            <div className="dashboard">
+                <aside className="sidebar">
+                    <div className="sidebar-header">
+                        <h2><i className="fas fa-crown"></i> Admin Panel</h2>
+                    </div>
+                    <nav className="sidebar-nav">
+                        <ul>
+                            <li>
+                                <a href="javascript:void(0)" onClick={() => setCurrentSection('overview')} className={currentSection === 'overview' ? 'active' : ''}>
+                                    <i className="fas fa-home"></i> Overview
+                                </a>
+                            </li>
+                            <li>
+                                <a href="javascript:void(0)" onClick={() => setCurrentSection('farmers')} className={currentSection === 'farmers' ? 'active' : ''}>
+                                    <i className="fas fa-tractor"></i> Farmer Management
+                                </a>
+                            </li>
+                            <li>
+                                <a href="javascript:void(0)" onClick={() => setCurrentSection('buyers')} className={currentSection === 'buyers' ? 'active' : ''}>
+                                    <i className="fas fa-store"></i> Buyer Management
+                                </a>
+                            </li>
+                            <li>
+                                <a href="javascript:void(0)" onClick={() => setCurrentSection('revenue')} className={currentSection === 'revenue' ? 'active' : ''}>
+                                    <i className="fas fa-chart-line"></i> Revenue Analytics
+                                </a>
+                            </li>
+                            <li>
+                                <a href="javascript:void(0)" onClick={() => setCurrentSection('performance')} className={currentSection === 'performance' ? 'active' : ''}>
+                                    <i className="fas fa-chart-simple"></i> Performance Report
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </aside>
+
+                <main className="main-content">
+                    {/* OVERVIEW SECTION */}
+                    {currentSection === 'overview' && (
+                        <div id="overview" className="dashboard-section">
+                            <div className="section-header">
+                                <h2><i className="fas fa-chart-pie"></i> Platform Overview</h2>
+                                <button className="btn btn-primary btn-sm" onClick={refreshData}>
+                                    <i className="fas fa-sync-alt"></i> Refresh
+                                </button>
+                            </div>
+                            <div className="stats-grid">
+                                <div className="stat-card">
+                                    <div className="stat-value">{farmers.filter(f => f.status === 'active').length}/{farmers.length}</div>
+                                    <div className="stat-label">Active Farmers</div>
+                                </div>
+                                <div className="stat-card">
+                                    <div className="stat-value">{buyers.filter(b => b.status === 'active').length}/{buyers.length}</div>
+                                    <div className="stat-label">Active Buyers</div>
+                                </div>
+                                <div className="stat-card">
+                                    <div className="stat-value">{formatCurrency(totalRevenue)}</div>
+                                    <div className="stat-label">Platform Revenue</div>
+                                </div>
+                                <div className="stat-card">
+                                    <div className="stat-value">{totalOrders}</div>
+                                    <div className="stat-label">Total Orders</div>
+                                </div>
+                                <div className="stat-card">
+                                    <div className="stat-value">{totalProducts}</div>
+                                    <div className="stat-label">Products Listed</div>
+                                </div>
+                            </div>
+                            <div className="charts-row">
+                                <div className="chart-card">
+                                    <h3><i className="fas fa-chart-line"></i> Revenue Trend (Last 6 Months)</h3>
+                                    <div style={{ position: 'relative', height: '280px' }}>
+                                        <canvas ref={revenueCanvasRef}></canvas>
+                                    </div>
+                                </div>
+                                <div className="chart-card">
+                                    <h3><i className="fas fa-chart-pie"></i> User Distribution</h3>
+                                    <div style={{ position: 'relative', height: '280px' }}>
+                                        <canvas ref={userCanvasRef}></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* FARMER MANAGEMENT SECTION */}
+                    {currentSection === 'farmers' && (
+                        <div id="farmers" className="dashboard-section">
+                            <div className="section-header">
+                                <h2><i className="fas fa-tractor"></i> Farmer Management</h2>
+                                <button className="btn btn-primary" onClick={() => openRegisterModal('farmer')}>
+                                    <i className="fas fa-plus"></i> Register Farmer
+                                </button>
+                            </div>
+                            <div className="table-container">
+                                <table className="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Farm Name</th>
+                                            <th>Location</th>
+                                            <th>Products</th>
+                                            <th>Revenue</th>
+                                            <th>Status</th>
+                                            <th>Joined</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {farmers.map(f => {
+                                            const isActive = f.status === 'active';
+                                            return (
+                                                <tr key={f.id}>
+                                                    <td>{f.displayId}</td>
+                                                    <td><strong>{f.name}</strong><br /><small>{f.email}</small></td>
+                                                    <td>{f.location}</td>
+                                                    <td>{f.products}</td>
+                                                    <td>{formatCurrency(f.revenue)}</td>
+                                                    <td>
+                                                        <span className={`status-badge ${isActive ? 'status-active' : 'status-inactive'}`}>
+                                                            {isActive ? 'Active' : 'Inactive'}
+                                                        </span>
+                                                    </td>
+                                                    <td>{formatDate(f.joined)}</td>
+                                                    <td className="action-icons">
+                                                        <button className="action-btn btn-view" onClick={() => viewFarmerDetails(f.id)} title="View Details">
+                                                            <i className="fas fa-eye"></i>
+                                                        </button>
+                                                        <button className={`action-btn ${isActive ? 'btn-toggle-active' : 'btn-toggle-inactive'}`} onClick={() => toggleFarmerStatus(f.id)} title="Toggle Status">
+                                                            <i className={`fas ${isActive ? 'fa-toggle-on' : 'fa-toggle-off'}`}></i>
+                                                        </button>
+                                                        <button className="action-btn btn-delete" onClick={() => removeFarmer(f.id)} title="Remove">
+                                                            <i className="fas fa-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* BUYER MANAGEMENT SECTION */}
+                    {currentSection === 'buyers' && (
+                        <div id="buyers" className="dashboard-section">
+                            <div className="section-header">
+                                <h2><i className="fas fa-store"></i> Buyer Management</h2>
+                                <button className="btn btn-primary" onClick={() => openRegisterModal('buyer')}>
+                                    <i className="fas fa-plus"></i> Register Buyer
+                                </button>
+                            </div>
+                            <div className="table-container">
+                                <table className="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Business Name</th>
+                                            <th>Location</th>
+                                            <th>Orders</th>
+                                            <th>Total Spent</th>
+                                            <th>Status</th>
+                                            <th>Joined</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {buyers.map(b => {
+                                            const isActive = b.status === 'active';
+                                            return (
+                                                <tr key={b.id}>
+                                                    <td>{b.displayId}</td>
+                                                    <td><strong>{b.name}</strong><br /><small>{b.email}</small></td>
+                                                    <td>{b.location}</td>
+                                                    <td>{b.orders}</td>
+                                                    <td>{formatCurrency(b.spent)}</td>
+                                                    <td>
+                                                        <span className={`status-badge ${isActive ? 'status-active' : 'status-inactive'}`}>
+                                                            {isActive ? 'Active' : 'Inactive'}
+                                                        </span>
+                                                    </td>
+                                                    <td>{formatDate(b.joined)}</td>
+                                                    <td className="action-icons">
+                                                        <button className="action-btn btn-view" onClick={() => viewBuyerDetails(b.id)} title="View Details">
+                                                            <i className="fas fa-eye"></i>
+                                                        </button>
+                                                        <button className={`action-btn ${isActive ? 'btn-toggle-active' : 'btn-toggle-inactive'}`} onClick={() => toggleBuyerStatus(b.id)} title="Toggle Status">
+                                                            <i className={`fas ${isActive ? 'fa-toggle-on' : 'fa-toggle-off'}`}></i>
+                                                        </button>
+                                                        <button className="action-btn btn-delete" onClick={() => removeBuyer(b.id)} title="Remove">
+                                                            <i className="fas fa-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* REVENUE ANALYTICS SECTION */}
+                    {currentSection === 'revenue' && (
+                        <div id="revenue" className="dashboard-section">
+                            <div className="section-header">
+                                <h2><i className="fas fa-chart-line"></i> Revenue Analytics</h2>
+                                <select value={revenuePeriod} onChange={(e) => setRevenuePeriod(parseInt(e.target.value))} className="btn btn-outline btn-sm">
+                                    <option value="3">Last 3 Months</option>
+                                    <option value="6">Last 6 Months</option>
+                                    <option value="12">Last 12 Months</option>
+                                </select>
+                            </div>
+                            <div className="chart-card" style={{ marginBottom: '20px' }}>
+                                <div style={{ position: 'relative', height: '350px' }}>
+                                    <canvas ref={detailedRevenueCanvasRef}></canvas>
+                                </div>
+                            </div>
+                            <div className="stats-grid">
+                                <div className="stat-card">
+                                    <div className="stat-value">{formatCurrency(totalDetailedRev)}</div>
+                                    <div className="stat-label">Total Revenue ({revenuePeriod} months)</div>
+                                </div>
+                                <div className="stat-card">
+                                    <div className="stat-value">{formatCurrency(avgDetailedRev)}</div>
+                                    <div className="stat-label">Average Monthly Revenue</div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* PERFORMANCE REPORT SECTION */}
+                    {currentSection === 'performance' && (
+                        <div id="performance" className="dashboard-section">
+                            <div className="section-header">
+                                <h2><i className="fas fa-chart-simple"></i> Platform Performance Report</h2>
+                                <button className="btn btn-primary" onClick={downloadPerformanceReport}>
+                                    <i className="fas fa-download"></i> Download PDF Report
+                                </button>
+                            </div>
+                            <div className="filter-section" style={{ background: 'var(--light-gray)', padding: '15px', borderRadius: '12px', marginBottom: '20px' }}>
+                                <div style={{ display: 'flex', gap: '15px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                                    <div>
+                                        <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '600' }}>From Date</label>
+                                        <input type="date" value={reportFromDate} onChange={(e) => setReportFromDate(e.target.value)} style={{ padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--medium-gray)' }} />
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '600' }}>To Date</label>
+                                        <input type="date" value={reportToDate} onChange={(e) => setReportToDate(e.target.value)} style={{ padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--medium-gray)' }} />
+                                    </div>
+                                    <div>
+                                        <button className="btn btn-primary btn-sm" onClick={applyReportFilter}>Apply Filter</button>
+                                    </div>
+                                    <div>
+                                        <button className="btn btn-outline btn-sm" onClick={resetReportFilter}>Reset</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="performanceReportContainer" className="report-preview">
+                                <div className="report-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', paddingBottom: '20px', borderBottom: '3px solid var(--primary-green)', textAlign: 'left' }}>
+                                    <div>
+                                        <h2 style={{ margin: '0 0 5px 0', fontSize: '28px', color: 'var(--dark-green)' }}>🌾 Farm Vantara</h2>
+                                        <h3 style={{ margin: '0 0 5px 0', fontSize: '18px', color: 'var(--text-dark)' }}>Platform Performance Report</h3>
+                                        <p className="report-date" style={{ margin: '0', fontSize: '12px', color: 'var(--text-light)' }}>Generated: {new Date().toLocaleString()} | Period: {reportPeriodLabel} {reportFromDate && reportToDate ? `(${formatDate(reportFromDate)} to ${formatDate(reportToDate)})` : ''}</p>
+                                    </div>
+                                    <img src={logo} alt="Farm Vantara Logo" style={{ height: '60px', objectFit: 'contain' }} />
+                                </div>
+                                
+                                <div className="report-summary-cards">
+                                    <div className="report-summary-card"><div className="value">{formatCurrency(totalReportRevenue)}</div><div className="label">Total Revenue</div></div>
+                                    <div className="report-summary-card"><div className="value">{totalReportOrders}</div><div className="label">Total Orders</div></div>
+                                    <div className="report-summary-card"><div className="value">{formatCurrency(avgReportOrderValue)}</div><div className="label">Avg Order Value</div></div>
+                                    <div className="report-summary-card"><div className="value">{totalReportOrders > 0 ? Math.round(totalReportRevenue / totalReportOrders) : 0}</div><div className="label">Avg Ticket Size</div></div>
+                                </div>
+                                
+                                <div className="insight-box">
+                                    <h4><i className="fas fa-lightbulb"></i> Key Insights</h4>
+                                    <p>🌟 <strong>Top Performing Farmer:</strong> {topFarmerName} with {formatCurrency(farmerReportPerformance[0]?.revenue || 0)} revenue</p>
+                                    <p>🛒 <strong>Top Buyer:</strong> {topBuyerName} with {formatCurrency(buyerReportPerformance[0]?.spent || 0)} total spend</p>
+                                    <p>📊 <strong>Growth Trend:</strong> {growthMessage}</p>
+                                    <p>👥 <strong>Active Users:</strong> {activeFarmers + activeBuyers} out of {farmers.length + buyers.length} total</p>
+                                </div>
+                                
+                                <div className="report-section">
+                                    <div className="report-section-title"><i className="fas fa-chart-line"></i> Monthly Breakdown</div>
+                                    <table className="report-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Month</th>
+                                                <th>Revenue</th>
+                                                <th>Orders</th>
+                                                <th>Avg Order Value</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {monthlyReportBreakdown.map((m, idx) => (
+                                                <tr key={idx}>
+                                                    <td>{m.month}</td>
+                                                    <td>{formatCurrency(m.revenue)}</td>
+                                                    <td>{m.orders}</td>
+                                                    <td>{formatCurrency(m.revenue / m.orders)}</td>
+                                                </tr>
+                                            ))}
+                                            {monthlyReportBreakdown.length === 0 && <tr><td colSpan="4" style={{ textAlign: 'center' }}>No data available</td></tr>}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <div className="report-section">
+                                    <div className="report-section-title"><i className="fas fa-tractor"></i> Farmer Performance</div>
+                                    <table className="report-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Farmer Name</th>
+                                                <th>Orders</th>
+                                                <th>Revenue</th>
+                                                <th>Rating</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {farmerReportPerformance.map((fp, idx) => (
+                                                <tr key={idx}>
+                                                    <td>{fp.name}</td>
+                                                    <td>{fp.orders}</td>
+                                                    <td>{formatCurrency(fp.revenue)}</td>
+                                                    <td>⭐ {fp.rating}</td>
+                                                    <td>{fp.status === 'active' ? '✅ Active' : '❌ Inactive'}</td>
+                                                </tr>
+                                            ))}
+                                            {farmerReportPerformance.length === 0 && <tr><td colSpan="5" style={{ textAlign: 'center' }}>No data available</td></tr>}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <div className="report-section">
+                                    <div className="report-section-title"><i className="fas fa-store"></i> Buyer Performance</div>
+                                    <table className="report-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Buyer Name</th>
+                                                <th>Type</th>
+                                                <th>Orders</th>
+                                                <th>Total Spent</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {buyerReportPerformance.map((bp, idx) => (
+                                                <tr key={idx}>
+                                                    <td>{bp.name}</td>
+                                                    <td>{bp.type}</td>
+                                                    <td>{bp.orders}</td>
+                                                    <td>{formatCurrency(bp.spent)}</td>
+                                                    <td>{bp.status === 'active' ? '✅ Active' : '❌ Inactive'}</td>
+                                                </tr>
+                                            ))}
+                                            {buyerReportPerformance.length === 0 && <tr><td colSpan="5" style={{ textAlign: 'center' }}>No data available</td></tr>}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <div className="report-section">
+                                    <div className="report-section-title"><i className="fas fa-users"></i> User Statistics</div>
+                                    <table className="report-table">
+                                        <thead>
+                                            <tr>
+                                                <th>User Type</th>
+                                                <th>Active</th>
+                                                <th>Inactive</th>
+                                                <th>Total</th>
+                                                <th>Activation Rate</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Farmers</td>
+                                                <td>{activeFarmers}</td>
+                                                <td>{farmers.length - activeFarmers}</td>
+                                                <td>{farmers.length}</td>
+                                                <td>{((activeFarmers / farmers.length) * 100).toFixed(1)}%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Buyers</td>
+                                                <td>{activeBuyers}</td>
+                                                <td>{buyers.length - activeBuyers}</td>
+                                                <td>{buyers.length}</td>
+                                                <td>{((activeBuyers / buyers.length) * 100).toFixed(1)}%</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <div className="report-footer">
+                                    <p>© Farm Vantara - Empowering Farmers & Connecting Buyers</p>
+                                    <p>This is a system-generated performance report based on selected period.</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </main>
             </div>
-          </nav>
-        </aside>
 
-        {/* Main Content */}
-        <main className="main-content">
-          {/* Top Bar */}
-          <div className="top-bar">
-            <button className="toggle-sidebar" onClick={() => setSidebarActive(!sidebarActive)}>
-              <i className="fas fa-bars"></i>
-            </button>
-            <div className="search-bar">
-              <input
-                type="text"
-                placeholder="Search farmers, orders, reports..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              {showSearchResults && searchResults.length > 0 && (
-                <div className="search-results active">
-                  {searchResults.map((res, idx) => (
-                    <div key={idx} className="search-result-item" onClick={() => res.action()}>
-                      <div style={{ fontWeight: 600 }}>{safeRender(res.name)}</div>
-                      <div style={{ fontSize: '12px', color: 'var(--text-light)' }}>
-                        {safeRender(res.type)} • {safeRender(res.id)}
-                      </div>
-                      <div style={{ fontSize: '12px' }}>{safeRender(res.detail)}</div>
+            {/* MODALS */}
+            {activeModal === 'register' && (
+                <div id="registerModal" className="modal active">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h3 id="modalTitle">{registerType === 'farmer' ? 'Register New Farmer' : 'Register New Buyer'}</h3>
+                            <button onClick={() => setActiveModal(null)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer' }}>&times;</button>
+                        </div>
+                        <form id="registerForm" onSubmit={submitRegistration}>
+                            <div className="form-group">
+                                <label>Full Name / Business Name *</label>
+                                <input type="text" value={registerForm.name} required onChange={(e) => setRegisterForm({ ...registerForm, name: e.target.value })} />
+                            </div>
+                            <div className="form-group">
+                                <label>Location *</label>
+                                <input type="text" value={registerForm.location} required onChange={(e) => setRegisterForm({ ...registerForm, location: e.target.value })} />
+                            </div>
+                            <div className="form-group">
+                                <label>Email Address *</label>
+                                <input type="email" value={registerForm.email} required onChange={(e) => setRegisterForm({ ...registerForm, email: e.target.value })} />
+                            </div>
+                            <div className="form-group">
+                                <label>Phone Number *</label>
+                                <input type="tel" value={registerForm.phone} required onChange={(e) => setRegisterForm({ ...registerForm, phone: e.target.value })} />
+                            </div>
+                            <div className="form-buttons">
+                                <button type="button" className="btn btn-outline" onClick={() => setActiveModal(null)}>Cancel</button>
+                                <button type="submit" className="btn className=btn-primary">Register</button>
+                            </div>
+                        </form>
                     </div>
-                  ))}
                 </div>
-              )}
-            </div>
-            <div className="top-bar-actions">
-              <div className="notification" onClick={() => loadSection('notifications')}>
-                <i className="fas fa-bell"></i>
-                <span className="notification-badge">{notifications.filter(n => !n.read).length}</span>
-              </div>
-              <div className="notification">
-                <i className="fas fa-envelope"></i>
-                <span className="notification-badge">3</span>
-              </div>
-              <div className="user-profile">
-                <div className="user-avatar"><i className="fas fa-user"></i></div>
-                <div>
-                  <div style={{ fontWeight: 600 }}>Admin User</div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-light)' }}>Super Admin</div>
-                </div>
-                <i className="fas fa-chevron-down"></i>
-              </div>
-            </div>
-          </div>
-
-          {/* Content Wrapper */}
-          <div className="content-wrapper">
-            {/* Dashboard Section */}
-            {currentSection === 'dashboard' && (
-              <div className="section-content active">
-                <div className="page-header">
-                  <h1 className="page-title">Admin Dashboard</h1>
-                  <p className="page-subtitle">Monitor all insights of Farmers, Buyers and Consumers at one place</p>
-                </div>
-
-                {/* Stats Cards */}
-                <div className="stats-grid">
-                  <div className="stat-card">
-                    <div className="stat-header">
-                      <div className="stat-title">Total Farmers</div>
-                      <div className="stat-icon"><i className="fas fa-tractor"></i></div>
-                    </div>
-                    <div className="stat-number">{stats.totalFarmers.toLocaleString()}</div>
-                    <div className="stat-change positive"><i className="fas fa-arrow-up"></i> 12% from last month</div>
-                  </div>
-                  <div className="stat-card blue">
-                    <div className="stat-header">
-                      <div className="stat-title">Business Buyers</div>
-                      <div className="stat-icon"><i className="fas fa-building"></i></div>
-                    </div>
-                    <div className="stat-number">{stats.totalBuyers.toLocaleString()}</div>
-                    <div className="stat-change positive"><i className="fas fa-arrow-up"></i> 8% from last month</div>
-                  </div>
-                  <div className="stat-card orange">
-                    <div className="stat-header">
-                      <div className="stat-title">Active Consumers</div>
-                      <div className="stat-icon"><i className="fas fa-users"></i></div>
-                    </div>
-                    <div className="stat-number">{stats.totalConsumers.toLocaleString()}</div>
-                    <div className="stat-change positive"><i className="fas fa-arrow-up"></i> 15% from last month</div>
-                  </div>
-                  <div className="stat-card red">
-                    <div className="stat-header">
-                      <div className="stat-title">Pending Orders</div>
-                      <div className="stat-icon"><i className="fas fa-shopping-cart"></i></div>
-                    </div>
-                    <div className="stat-number">{stats.pendingOrders}</div>
-                    <div className="stat-change negative"><i className="fas fa-arrow-down"></i> 5% from yesterday</div>
-                  </div>
-                  <div className="stat-card yellow">
-                    <div className="stat-header">
-                      <div className="stat-title">Today's Revenue</div>
-                      <div className="stat-icon"><i className="fas fa-rupee-sign"></i></div>
-                    </div>
-                    <div className="stat-number">{stats.todayRevenue}</div>
-                    <div className="stat-change positive"><i className="fas fa-arrow-up"></i> 22% from yesterday</div>
-                  </div>
-                </div>
-
-                {/* Quick Actions */}
-                <div className="quick-actions-grid">
-                  {[
-                    { icon: 'fa-user-plus', title: 'Add New Farmer', desc: 'Register new farmer with verification', action: () => openModal('addFarmer') },
-                    { icon: 'fa-check-circle', title: 'Verify Business Buyer', desc: 'Approve business registration', action: () => openModal('verifyBuyer') },
-                    { icon: 'fa-hand-holding-usd', title: 'Issue Refund', desc: 'Process customer refunds', action: () => openModal('issueRefund') },
-                    { icon: 'fa-bullhorn', title: 'Send Broadcast', desc: 'Send notification to all users', action: () => openModal('sendNotification') },
-                    { icon: 'fa-file-export', title: 'Generate Report', desc: 'Export data analytics', action: generateReport },
-                    { icon: 'fa-sliders-h', title: 'System Settings', desc: 'Update platform configuration', action: () => openModal('systemSettings') },
-                  ].map((act, idx) => (
-                    <div key={idx} className="action-card" onClick={act.action}>
-                      <div className="action-icon"><i className={`fas ${act.icon}`}></i></div>
-                      <div className="action-title">{act.title}</div>
-                      <div className="action-desc">{act.desc}</div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Charts Grid */}
-                <div className="charts-grid">
-                  <div className="chart-card">
-                    <div className="chart-header">
-                      <div className="chart-title">User Growth Analysis</div>
-                      <div className="chart-controls">
-                        <select onChange={(e) => console.log('Period changed', e.target.value)}>
-                          <option value="monthly">Monthly</option>
-                          <option value="weekly">Weekly</option>
-                          <option value="daily">Daily</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div className="chart-container">
-                      <canvas ref={growthChartRef}></canvas>
-                    </div>
-                  </div>
-                  <div className="chart-card">
-                    <div className="chart-header">
-                      <div className="chart-title">Revenue Distribution</div>
-                      <div className="chart-controls">
-                        <select onChange={(e) => console.log('Period changed', e.target.value)}>
-                          <option value="monthly">This Month</option>
-                          <option value="quarterly">This Quarter</option>
-                          <option value="yearly">This Year</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div className="chart-container">
-                      <canvas ref={revenueChartRef}></canvas>
-                    </div>
-                  </div>
-                  <div className="chart-card">
-                    <div className="chart-header">
-                      <div className="chart-title">Top Crop Categories</div>
-                      <div className="chart-controls">
-                        <select onChange={(e) => console.log('Period changed', e.target.value)}>
-                          <option value="current">Current Month</option>
-                          <option value="previous">Previous Month</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div className="chart-container">
-                      <canvas ref={cropChartRef}></canvas>
-                    </div>
-                  </div>
-                  <div className="chart-card">
-                    <div className="chart-header">
-                      <div className="chart-title">Regional Distribution</div>
-                      <div className="chart-controls">
-                        <select onChange={(e) => console.log('Region changed', e.target.value)}>
-                          <option value="all">All Regions</option>
-                          <option value="north">North India</option>
-                          <option value="south">South India</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div className="chart-container">
-                      <canvas ref={regionChartRef}></canvas>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Recent Activities Table */}
-                <div className="data-table-card active">
-                  <div className="table-header">
-                    <h3>Recent Activities</h3>
-                    <div className="table-actions">
-                      <button className="btn btn-secondary" onClick={() => showAlert('Filter clicked', 'info')}>
-                        <i className="fas fa-filter"></i> Filter
-                      </button>
-                      <button className="btn btn-secondary" onClick={() => exportData('activities', 'csv')}>
-                        <i className="fas fa-download"></i> Export
-                      </button>
-                    </div>
-                  </div>
-                  <DataTable
-                    columns={activitiesColumns}
-                    data={activities}
-                    pagination
-                    paginationPerPage={10}
-                    highlightOnHover
-                    striped
-                  />
-                </div>
-
-                {/* Pending Approvals Table */}
-                <div className="data-table-card active">
-                  <div className="table-header">
-                    <h3>Pending Approvals</h3>
-                    <div className="table-actions">
-                      <button className="btn btn-primary" onClick={() => { pendingApprovals.forEach(r => approveRequest(r.id)); }}>
-                        <i className="fas fa-check"></i> Approve All
-                      </button>
-                      <button className="btn btn-danger" onClick={() => { pendingApprovals.forEach(r => rejectRequest(r.id)); }}>
-                        <i className="fas fa-times"></i> Reject All
-                      </button>
-                    </div>
-                  </div>
-                  <DataTable
-                    columns={approvalsColumns}
-                    data={pendingApprovals}
-                    pagination
-                    paginationPerPage={5}
-                    highlightOnHover
-                    striped
-                  />
-                </div>
-              </div>
             )}
 
-            {/* Farmers Section */}
-            {currentSection === 'farmers' && (
-              <div className="section-content active">
-                <div className="page-header">
-                  <h1 className="page-title">Farmers Management</h1>
-                  <p className="page-subtitle">Manage farmer registrations, verifications, and activities</p>
-                </div>
-                <div className="data-table-card active">
-                  <div className="table-header">
-                    <h3>All Farmers</h3>
-                    <div className="table-actions">
-                      <button className="btn btn-primary" onClick={() => openModal('addFarmer')}>
-                        <i className="fas fa-user-plus"></i> Add Farmer
-                      </button>
-                      <button className="btn btn-secondary" onClick={() => exportData('farmers', 'csv')}>
-                        <i className="fas fa-download"></i> Export
-                      </button>
+            {activeModal === 'details' && selectedDetails && (
+                <div id="detailsModal" className="modal active">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h3 id="detailsModalTitle">
+                                <i className={selectedDetails.type === 'farmer' ? "fas fa-tractor" : "fas fa-store"}></i>{' '}
+                                {selectedDetails.type === 'farmer' ? 'Farmer Details' : 'Buyer Details'}
+                            </h3>
+                            <button onClick={() => { setActiveModal(null); setSelectedDetails(null); }} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer' }}>&times;</button>
+                        </div>
+                        <div id="detailsModalContent">
+                            {selectedDetails.type === 'farmer' ? (
+                                <div className="details-card">
+                                    <div className="details-header">
+                                        <i className="fas fa-tractor"></i>
+                                        <h2>{selectedDetails.data.name}</h2>
+                                        <span className={`status-badge ${selectedDetails.data.status === 'active' ? 'status-active' : 'status-inactive'}`}>
+                                            {selectedDetails.data.status === 'active' ? 'Active Farmer' : 'Inactive Farmer'}
+                                        </span>
+                                    </div>
+                                    <div className="stats-mini">
+                                        <div className="stat-mini-card"><div className="value">{selectedDetails.data.products}</div><div>Products</div></div>
+                                        <div className="stat-mini-card"><div className="value">{transactions.filter(t => t.farmerId === selectedDetails.data.id).length}</div><div>Orders</div></div>
+                                        <div className="stat-mini-card"><div className="value">{formatCurrency(selectedDetails.data.revenue)}</div><div>Revenue</div></div>
+                                        <div className="stat-mini-card"><div className="value">⭐ {selectedDetails.data.rating}</div><div>Rating</div></div>
+                                    </div>
+                                    <div className="details-row"><div className="details-label">📍 Location</div><div className="details-value">{selectedDetails.data.location}</div></div>
+                                    <div className="details-row"><div className="details-label">📧 Email</div><div className="details-value">{selectedDetails.data.email}</div></div>
+                                    <div className="details-row"><div className="details-label">📞 Phone</div><div className="details-value">{selectedDetails.data.phone}</div></div>
+                                    <div className="details-row"><div className="details-label">📅 Joined</div><div className="details-value">{formatDate(selectedDetails.data.joined)}</div></div>
+                                    <div className="details-row"><div className="details-label">📝 Description</div><div className="details-value">{selectedDetails.data.description}</div></div>
+                                    <div className="form-buttons"><button className="btn btn-primary" onClick={() => { setActiveModal(null); setSelectedDetails(null); }}>Close</button></div>
+                                </div>
+                            ) : (
+                                <div className="details-card">
+                                    <div className="details-header">
+                                        <i className="fas fa-store"></i>
+                                        <h2>{selectedDetails.data.name}</h2>
+                                        <span className={`status-badge ${selectedDetails.data.status === 'active' ? 'status-active' : 'status-inactive'}`}>
+                                            {selectedDetails.data.status === 'active' ? 'Active Buyer' : 'Inactive Buyer'}
+                                        </span>
+                                    </div>
+                                    <div className="stats-mini">
+                                        <div className="stat-mini-card"><div className="value">{selectedDetails.data.orders}</div><div>Orders</div></div>
+                                        <div className="stat-mini-card"><div className="value">{formatCurrency(selectedDetails.data.spent)}</div><div>Total Spent</div></div>
+                                        <div className="stat-mini-card"><div className="value">{selectedDetails.data.type}</div><div>Type</div></div>
+                                    </div>
+                                    <div className="details-row"><div className="details-label">📍 Location</div><div className="details-value">{selectedDetails.data.location}</div></div>
+                                    <div className="details-row"><div className="details-label">📧 Email</div><div className="details-value">{selectedDetails.data.email}</div></div>
+                                    <div className="details-row"><div className="details-label">📞 Phone</div><div className="details-value">{selectedDetails.data.phone}</div></div>
+                                    <div className="details-row"><div className="details-label">🏢 GST</div><div className="details-value">{selectedDetails.data.gst}</div></div>
+                                    <div className="details-row"><div className="details-label">📅 Joined</div><div className="details-value">{formatDate(selectedDetails.data.joined)}</div></div>
+                                    <div className="form-buttons"><button className="btn btn-primary" onClick={() => { setActiveModal(null); setSelectedDetails(null); }}>Close</button></div>
+                                </div>
+                            )}
+                        </div>
                     </div>
-                  </div>
-                  <DataTable
-                    columns={farmersColumns}
-                    data={farmers}
-                    pagination
-                    paginationPerPage={10}
-                    highlightOnHover
-                    striped
-                  />
                 </div>
-              </div>
             )}
 
-            {/* Buyers Section */}
-            {currentSection === 'buyers' && (
-              <div className="section-content active">
-                <div className="page-header">
-                  <h1 className="page-title">Business Buyers Management</h1>
-                  <p className="page-subtitle">Monitor business buyers, orders, and transactions</p>
-                </div>
-                <div className="data-table-card active">
-                  <div className="table-header">
-                    <h3>All Business Buyers</h3>
-                    <div className="table-actions">
-                      <button className="btn btn-primary" onClick={() => openModal('verifyBuyer')}>
-                        <i className="fas fa-check-circle"></i> Verify Buyer
-                      </button>
-                      <button className="btn btn-secondary" onClick={() => exportData('buyers', 'csv')}>
-                        <i className="fas fa-download"></i> Export
-                      </button>
+            {/* Slide-in notifications portal */}
+            <div className="admin-notifications-container">
+                {notifications.map(n => (
+                    <div key={n.id} className="admin-notification">
+                        <i className="fas fa-check-circle" style={{ color: 'var(--primary-green)', marginRight: '10px' }}></i>
+                        {n.message}
                     </div>
-                  </div>
-                  <DataTable
-                    columns={buyersColumns}
-                    data={buyers}
-                    pagination
-                    paginationPerPage={10}
-                    highlightOnHover
-                    striped
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Other sections - simplified */}
-            {currentSection !== 'dashboard' && currentSection !== 'farmers' && currentSection !== 'buyers' && (
-              <div className="section-content active">
-                <div className="page-header">
-                  <h1 className="page-title">{currentSection.charAt(0).toUpperCase() + currentSection.slice(1)}</h1>
-                  <p className="page-subtitle">Content for {currentSection} section</p>
-                </div>
-                <div className="user-detail-card">
-                  <p>This section is under development. Full functionality coming soon.</p>
-                </div>
-              </div>
-            )}
-          </div>
-        </main>
-      </div>
-
-      {/* Modals */}
-
-      {/* Add Farmer Modal */}
-      {modals.addFarmer && (
-        <div className="modal active" onClick={() => closeModal('addFarmer')}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Add New Farmer</h3>
-              <button className="close-modal" onClick={() => closeModal('addFarmer')}>&times;</button>
+                ))}
             </div>
-            <div className="modal-body">
-              <form ref={addFarmerFormRef} onSubmit={addNewFarmer}>
-                <div className="form-group">
-                  <label>Full Name *</label>
-                  <input type="text" className="form-control" name="farmerName" required />
-                </div>
-                <div className="form-group">
-                  <label>Mobile Number *</label>
-                  <input type="tel" className="form-control" name="farmerMobile" required />
-                </div>
-                <div className="form-group">
-                  <label>Email Address</label>
-                  <input type="email" className="form-control" name="farmerEmail" />
-                </div>
-                <div className="form-group">
-                  <label>State *</label>
-                  <select className="form-control" name="farmerState" required>
-                    <option value="">Select State</option>
-                    <option>Punjab</option>
-                    <option>Maharashtra</option>
-                    <option>Gujarat</option>
-                    <option>Uttar Pradesh</option>
-                    <option>Madhya Pradesh</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label>District *</label>
-                  <input type="text" className="form-control" name="farmerDistrict" required />
-                </div>
-                <div className="form-group">
-                  <label>Crops Grown *</label>
-                  <input type="text" className="form-control" name="farmerCrops" placeholder="Wheat, Rice, Vegetables" required />
-                </div>
-                <div className="form-group">
-                  <label>Farm Size (Acres)</label>
-                  <input type="number" className="form-control" name="farmSize" step="0.1" />
-                </div>
-                <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>
-                  <i className="fas fa-save"></i> Register Farmer
-                </button>
-              </form>
-            </div>
-          </div>
         </div>
-      )}
-
-      {/* Verify Buyer Modal */}
-      {modals.verifyBuyer && (
-        <div className="modal active" onClick={() => closeModal('verifyBuyer')}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Verify Business Buyer</h3>
-              <button className="close-modal" onClick={() => closeModal('verifyBuyer')}>&times;</button>
-            </div>
-            <div className="modal-body">
-              <form ref={verifyBuyerFormRef} onSubmit={verifyBusinessBuyer}>
-                <div className="form-group">
-                  <label>Business Name *</label>
-                  <input type="text" className="form-control" name="businessName" required />
-                </div>
-                <div className="form-group">
-                  <label>GST Number *</label>
-                  <input type="text" className="form-control" name="gstNumber" required />
-                </div>
-                <div className="form-group">
-                  <label>Business Type *</label>
-                  <select className="form-control" name="businessType" required>
-                    <option value="">Select Type</option>
-                    <option>Restaurant</option>
-                    <option>Hotel</option>
-                    <option>Retail Store</option>
-                    <option>Wholesaler</option>
-                    <option>Processing Unit</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label>Monthly Procurement (₹) *</label>
-                  <input type="number" className="form-control" name="monthlyProcurement" required />
-                </div>
-                <div className="form-group">
-                  <label>Contact Person *</label>
-                  <input type="text" className="form-control" name="contactPerson" required />
-                </div>
-                <div className="form-group">
-                  <label>Contact Number *</label>
-                  <input type="tel" className="form-control" name="contactNumber" required />
-                </div>
-                <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>
-                  <i className="fas fa-check-circle"></i> Verify & Approve
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Issue Refund Modal */}
-      {modals.issueRefund && (
-        <div className="modal active" onClick={() => closeModal('issueRefund')}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Issue Refund</h3>
-              <button className="close-modal" onClick={() => closeModal('issueRefund')}>&times;</button>
-            </div>
-            <div className="modal-body">
-              <form ref={refundFormRef} onSubmit={processRefund}>
-                <div className="form-group">
-                  <label>Order ID *</label>
-                  <input type="text" className="form-control" name="orderId" required />
-                </div>
-                <div className="form-group">
-                  <label>Refund Amount (₹) *</label>
-                  <input type="number" className="form-control" name="refundAmount" required />
-                </div>
-                <div className="form-group">
-                  <label>Refund Reason *</label>
-                  <select className="form-control" name="refundReason" required>
-                    <option value="">Select Reason</option>
-                    <option value="quality">Quality Issue</option>
-                    <option value="delay">Delivery Delay</option>
-                    <option value="damage">Damaged Goods</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label>Additional Notes</label>
-                  <textarea className="form-control" name="refundNotes" rows="3"></textarea>
-                </div>
-                <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>
-                  <i className="fas fa-hand-holding-usd"></i> Process Refund
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Send Notification Modal */}
-      {modals.sendNotification && (
-        <div className="modal active" onClick={() => closeModal('sendNotification')}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Send Broadcast Notification</h3>
-              <button className="close-modal" onClick={() => closeModal('sendNotification')}>&times;</button>
-            </div>
-            <div className="modal-body">
-              <form ref={notificationFormRef} onSubmit={sendNotification}>
-                <div className="form-group">
-                  <label>Notification Type *</label>
-                  <select className="form-control" name="notificationType" required>
-                    <option value="">Select Type</option>
-                    <option value="all">All Users</option>
-                    <option value="farmers">Farmers Only</option>
-                    <option value="buyers">Business Buyers Only</option>
-                    <option value="consumers">Consumers Only</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label>Subject *</label>
-                  <input type="text" className="form-control" name="notificationSubject" required />
-                </div>
-                <div className="form-group">
-                  <label>Message *</label>
-                  <textarea className="form-control" name="notificationMessage" rows="5" required></textarea>
-                </div>
-                <div className="form-group">
-                  <label>Priority</label>
-                  <select className="form-control" name="notificationPriority">
-                    <option value="normal">Normal</option>
-                    <option value="high">High</option>
-                    <option value="urgent">Urgent</option>
-                  </select>
-                </div>
-                <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>
-                  <i className="fas fa-paper-plane"></i> Send Notification
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* System Settings Modal */}
-      {modals.systemSettings && (
-        <div className="modal active" onClick={() => closeModal('systemSettings')}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>System Settings</h3>
-              <button className="close-modal" onClick={() => closeModal('systemSettings')}>&times;</button>
-            </div>
-            <div className="modal-body">
-              <form ref={settingsFormRef} onSubmit={saveSystemSettings}>
-                <div className="form-group">
-                  <label>Platform Commission (%)</label>
-                  <input type="number" className="form-control" name="platformCommission" min="0" max="20" step="0.1" defaultValue="5" />
-                </div>
-                <div className="form-group">
-                  <label>Farmer Payment Delay (Hours)</label>
-                  <input type="number" className="form-control" name="paymentDelay" min="1" max="72" defaultValue="24" />
-                </div>
-                <div className="form-group">
-                  <label>Minimum Order Value (₹)</label>
-                  <input type="number" className="form-control" name="minOrderValue" min="0" defaultValue="500" />
-                </div>
-                <div className="form-group">
-                  <label>Enable Automatic Farmer Verification</label>
-                  <select className="form-control" name="autoVerification">
-                    <option value="yes">Yes</option>
-                    <option value="no">No</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label>Default Notification Language</label>
-                  <select className="form-control" name="defaultLanguage">
-                    <option value="en">English</option>
-                    <option value="hi">Hindi</option>
-                    <option value="ta">Tamil</option>
-                    <option value="te">Telugu</option>
-                  </select>
-                </div>
-                <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>
-                  <i className="fas fa-save"></i> Save Settings
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+    );
 };
 
 export default AdminDashboard;

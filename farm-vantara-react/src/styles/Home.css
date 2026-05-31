@@ -242,8 +242,17 @@ section {
 }
 
 @keyframes pulse {
-  0%, 100% { transform: scale(1); opacity: 0.5; }
-  50% { transform: scale(1.1); opacity: 0.8; }
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
 }
 
 .hero-main-image {
@@ -256,8 +265,15 @@ section {
 }
 
 @keyframes floatImage {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-15px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-15px);
+  }
 }
 
 .floating-card {
@@ -294,13 +310,20 @@ section {
 
 .card-3 {
   top: 35%;
-  right: -10%;
+  right: 12% !important;
   animation-delay: 1s;
 }
 
 @keyframes floatCard {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
 }
 
 .hero-wave {
@@ -668,8 +691,13 @@ section {
 }
 
 @keyframes tickerScroll {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
 }
 
 .ticker-item {
@@ -775,7 +803,8 @@ section {
   color: var(--text-dark);
 }
 
-.farmer-location, .farmer-crops {
+.farmer-location,
+.farmer-crops {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1069,6 +1098,8 @@ section {
 
 .cta-main-image {
   max-width: 100%;
+  max-height: 420px !important;
+  object-fit: cover !important;
   height: auto;
   position: relative;
   z-index: 1;
@@ -1251,6 +1282,7 @@ section {
     opacity: 0;
     transform: translateY(-30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1407,7 +1439,9 @@ section {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Responsive Design */
@@ -1415,135 +1449,182 @@ section {
   .container {
     padding: 0 24px;
   }
-  
+
   .hero-grid,
   .cta-hero-grid {
     grid-template-columns: 1fr;
     gap: 40px;
   }
-  
+
   .hero-text-wrapper,
   .cta-text-wrapper {
     text-align: center;
   }
-  
+
   .cta-buttons-group {
     justify-content: center;
   }
-  
+
   .about-grid {
     grid-template-columns: 1fr;
     gap: 40px;
   }
-  
+
   .stats-grid {
     gap: 25px;
   }
-  
+
   .stat-card {
     padding: 25px 35px;
   }
-  
+
   .cta-features-list {
     justify-content: center;
   }
+
+  /* Safe positioning for floating cards to NEVER cut off at sides */
+  .card-1 {
+    left: 2% !important;
+    top: 5% !important;
+  }
+
+  .card-2 {
+    right: 2% !important;
+    bottom: 8% !important;
+  }
+
+  .card-3 {
+    right: 15% !important;
+    top: 35% !important;
+  }
 }
 
+/* 2. Mobile/Tablet Sizing and Positioning to prevent side cut-offs */
 @media (max-width: 768px) {
+  .hero-section {
+    padding: 30px 0 50px !important;
+  }
+
+  .hero-main-image {
+    max-height: 260px !important;
+    width: auto !important;
+    margin: 0 auto !important;
+  }
+
+  .floating-card {
+    padding: 5px 10px !important;
+    font-size: 0.7rem !important;
+  }
+
+  .card-1 {
+    left: 5% !important;
+    top: 5% !important;
+  }
+
+  .card-2 {
+    right: 5% !important;
+    bottom: 8% !important;
+  }
+
+  .card-3 {
+    right: 6% !important;
+    top: 38% !important;
+  }
+
   section {
     padding: 60px 0;
   }
-  
+
   .hero-section,
   .registration-cta {
     padding: 60px 0 80px;
     min-height: auto;
   }
-  
+
   .section-title {
     font-size: 2rem;
   }
-  
+
   .hero-title,
   .cta-hero-title {
     font-size: 2rem;
   }
-  
+
   .hero-subtitle,
   .cta-hero-subtitle {
     font-size: 0.95rem;
   }
-  
+
   .cta-buttons-group {
     flex-direction: column;
     align-items: stretch;
     gap: 12px;
   }
-  
+
   .btn-hero,
   .btn-cta-hero {
     justify-content: center;
   }
-  
+
   .floating-card,
   .floating-card-cta {
     display: none;
   }
-  
+
   .value-grid,
   .process-steps,
   .farmers-grid,
   .sustainability-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .cta-features-list {
     flex-direction: column;
     align-items: center;
   }
-  
+
   .cta-feature-item {
     width: 100%;
     justify-content: center;
   }
-  
+
   .cookie-content {
     flex-direction: column;
     text-align: center;
   }
-  
+
   .modal-content {
     padding: 30px 24px;
   }
-  
+
   .role-option {
     flex-direction: column;
     text-align: center;
     gap: 12px;
   }
-  
+
   .stats-section {
     padding: 0 0 40px 0;
   }
-  
+
   .stats-grid {
     gap: 20px;
   }
-  
+
   .stat-card {
     padding: 20px 25px;
     min-width: 180px;
   }
-  
+
   .stat-icon {
     width: 45px;
     height: 45px;
   }
-  
+
   .stat-icon i {
     font-size: 20px;
   }
-  
+
   .stat-info .stat-number {
     font-size: 1.5rem;
   }
@@ -1555,7 +1636,7 @@ section {
     width: 55px;
     height: 55px;
   }
-  
+
   .whatsapp-float i {
     font-size: 32px;
   }
@@ -1565,29 +1646,29 @@ section {
   .container {
     padding: 0 16px;
   }
-  
+
   .hero-title,
   .cta-hero-title {
     font-size: 1.6rem;
   }
-  
+
   .section-title {
     font-size: 1.6rem;
   }
-  
+
   .farmer-card {
     margin: 0 8px;
   }
-  
+
   .modal-content {
     padding: 24px 16px;
   }
-  
+
   .stats-grid {
     flex-direction: column;
     align-items: center;
   }
-  
+
   .stat-card {
     width: 100%;
     max-width: 280px;
@@ -1600,7 +1681,7 @@ section {
     width: 50px;
     height: 50px;
   }
-  
+
   .whatsapp-float i {
     font-size: 28px;
   }
@@ -1608,6 +1689,7 @@ section {
 
 /* Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {

@@ -18,6 +18,7 @@ a {
   color: #646cff;
   text-decoration: inherit;
 }
+
 a:hover {
   color: #535bf2;
 }
@@ -25,8 +26,10 @@ a:hover {
 body {
   font-family: 'Open Sans', sans-serif;
   line-height: 1.6;
-  color: #2d3436;          /* matches your --text-dark */
-  background-color: #ffffff; /* matches your --white */
+  color: #2d3436;
+  /* matches your --text-dark */
+  background-color: #ffffff;
+  /* matches your --white */
   overflow-x: hidden;
   min-height: 100vh;
 }
@@ -47,9 +50,11 @@ button {
   cursor: pointer;
   transition: border-color 0.25s;
 }
+
 button:hover {
   border-color: #646cff;
 }
+
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
@@ -60,10 +65,376 @@ button:focus-visible {
     color: #213547;
     background-color: #ffffff;
   }
+
   a:hover {
     color: #747bff;
   }
+
   button {
     background-color: #f9f9f9;
   }
+}
+
+/* ==========================================================================
+   PREMIUM DYNAMIC SECTION HEADER STYLE (Left Title, Tag directly Underneath)
+   ========================================================================== */
+
+/* Modern left-aligned layout with heading and tagline stacked vertically */
+body .section-header,
+body [class*="-page"] .section-header,
+body .matching-algorithm-page .section-header,
+body .buyer-dashboard-page .section-header,
+body .farmer-dashboard-page .section-header,
+body .research-page .section-header,
+body .quality-assurance-page .section-header,
+body .guides-page .section-header,
+body .sustainability-page .section-header {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  align-items: flex-start !important;
+  text-align: left !important;
+  border-bottom: 1px solid var(--medium-gray, #dfe6e9) !important;
+  padding-bottom: 18px !important;
+  margin-bottom: 50px !important;
+  gap: 8px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  position: relative !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* Cleanup layout builders' pseudo elements */
+body .section-header::before,
+body .section-header::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* Premium Left-aligned Green Header Titles */
+body .section-title,
+body [class*="-page"] .section-title,
+body .matching-algorithm-page .section-header h2,
+body .buyer-dashboard-page .section-header h2,
+body .farmer-dashboard-page .section-header h2 {
+  font-size: 2.2rem !important;
+  font-weight: 700 !important;
+  color: var(--dark-green, #219653) !important;
+  margin-bottom: 0 !important;
+  display: inline-block !important;
+  background: none !important;
+  -webkit-background-clip: initial !important;
+  background-clip: initial !important;
+  -webkit-text-fill-color: var(--dark-green, #219653) !important;
+  position: relative !important;
+  padding-bottom: 0 !important;
+  line-height: 1.2 !important;
+  text-align: left !important;
+}
+
+/* Remove centered underline tags/bars */
+body .section-title::after,
+body [class*="-page"] .section-title::after,
+body .section-title::before,
+body [class*="-page"] .section-title::before {
+  display: none !important;
+  content: none !important;
+}
+
+/* Premium Left-aligned Grey Subtitles (Tags) directly under the heading */
+body .section-header .section-subtitle,
+body [class*="-page"] .section-header .section-subtitle {
+  font-size: 1.05rem !important;
+  color: var(--text-light, #636e72) !important;
+  margin: 0 !important;
+  max-width: 100% !important;
+  font-weight: 500 !important;
+  line-height: 1.5 !important;
+  text-align: left !important;
+  /* Left-aligned directly under the title */
+  flex: 0 1 auto !important;
+}
+
+/* Responsive adjustments for mobile and tablets */
+@media (max-width: 768px) {
+
+  body .section-header,
+  body [class*="-page"] .section-header {
+    margin-bottom: 35px !important;
+    padding-bottom: 12px !important;
+    gap: 6px !important;
+  }
+
+  body .section-title,
+  body [class*="-page"] .section-title {
+    font-size: 1.8rem !important;
+  }
+
+  body .section-header .section-subtitle,
+  body [class*="-page"] .section-header .section-subtitle {
+    font-size: 0.95rem !important;
+  }
+}
+
+/* ==========================================================================
+   PREMIUM CARD ALIGNMENT & WIDGET ALIGNMENT SYSTEM
+   ========================================================================== */
+
+/* 1. Step Cards (How It Works section) */
+body .step {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  height: 100% !important;
+  box-sizing: border-box !important;
+}
+
+body .step-title {
+  min-height: 3.5rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  margin-bottom: 15px !important;
+  width: 100% !important;
+}
+
+body .step-description {
+  flex-grow: 1 !important;
+  margin-bottom: 20px !important;
+  text-align: center !important;
+  display: block !important;
+  padding-left: 0 !important;
+  border-left: none !important;
+}
+
+body .step-action {
+  margin-top: auto !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+}
+
+/* 2. Value Proposition Cards (Why Choose Farm Vantara) */
+body .value-card {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  height: 100% !important;
+  box-sizing: border-box !important;
+}
+
+body .value-description {
+  flex-grow: 1 !important;
+  margin-bottom: 24px !important;
+  text-align: center !important;
+}
+
+body .value-badge {
+  margin-top: auto !important;
+  display: inline-block !important;
+}
+
+/* 3. Sustainability & Impact Cards */
+body .sustainability-card {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  height: 100% !important;
+  box-sizing: border-box !important;
+}
+
+body .sustainability-description {
+  flex-grow: 1 !important;
+  margin-bottom: 24px !important;
+  text-align: center !important;
+}
+
+body .sustainability-badge {
+  margin-top: auto !important;
+  display: inline-block !important;
+}
+
+/* 4. Research Category Cards */
+body .category-card {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  height: 100% !important;
+  box-sizing: border-box !important;
+}
+
+body .category-description {
+  flex-grow: 1 !important;
+  margin-bottom: 20px !important;
+  text-align: center !important;
+}
+
+body .category-papers {
+  width: 100% !important;
+  margin-top: auto !important;
+  padding-left: 0 !important;
+}
+
+/* 5. Featured Research Paper Cards */
+body .paper-card {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+}
+
+body .paper-body {
+  display: flex !important;
+  flex-direction: column !important;
+  flex-grow: 1 !important;
+  height: 100% !important;
+  box-sizing: border-box !important;
+}
+
+body .paper-abstract {
+  flex-grow: 1 !important;
+  margin-bottom: 20px !important;
+}
+
+body .paper-meta {
+  margin-top: auto !important;
+  width: 100% !important;
+}
+
+body .paper-actions {
+  margin-top: 15px !important;
+}
+
+/* 6. Crop Grid Cards */
+body .crop-card {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+}
+
+body .crop-info {
+  display: flex !important;
+  flex-direction: column !important;
+  flex-grow: 1 !important;
+  height: 100% !important;
+  box-sizing: border-box !important;
+}
+
+body .crop-specs {
+  margin-top: auto !important;
+  margin-bottom: 15px !important;
+  width: 100% !important;
+}
+
+body .crop-demand {
+  align-self: flex-start !important;
+}
+
+/* 7. Impact Stat Cards */
+body .stat-card {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  height: 100% !important;
+  box-sizing: border-box !important;
+}
+
+body .stat-label {
+  margin-top: auto !important;
+}
+
+/* 8. WhatsApp Float Center Fix */
+body .whatsapp-float {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #25d366 !important;
+}
+
+body .whatsapp-float i {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  vertical-align: middle !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1 !important;
+  width: 1em !important;
+  height: 1em !important;
+}
+
+/* 9. Premium Compact Stats Cards specifically on Homepage */
+.stats-section .stat-card {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 15px !important;
+  background: #ffffff !important;
+  padding: 16px 20px !important;
+  border-radius: 16px !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08) !important;
+  border: 1px solid rgba(39, 174, 96, 0.15) !important;
+  min-width: 200px !important;
+  max-width: 260px !important;
+  height: auto !important;
+  transition: all 0.3s ease !important;
+}
+
+.stats-section .stat-card:hover {
+  transform: translateY(-5px) !important;
+  box-shadow: 0 15px 35px rgba(39, 174, 96, 0.15) !important;
+  border-color: rgba(39, 174, 96, 0.3) !important;
+}
+
+.stats-section .stat-icon {
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  min-height: 48px !important;
+  background: var(--gradient-primary, linear-gradient(135deg, #27ae60 0%, #11998e 100%)) !important;
+  border-radius: 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.stats-section .stat-icon i {
+  font-size: 20px !important;
+  color: #ffffff !important;
+  margin: 0 !important;
+}
+
+.stats-section .stat-info {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+}
+
+.stats-section .stat-info .stat-number {
+  font-size: 1.6rem !important;
+  font-weight: 800 !important;
+  color: #27ae60 !important;
+  line-height: 1.1 !important;
+  margin-bottom: 2px !important;
+  text-shadow: none !important;
+  letter-spacing: -0.02em !important;
+}
+
+.stats-section .stat-info .stat-label {
+  font-size: 0.75rem !important;
+  color: #555555 !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  margin: 0 !important;
+  text-shadow: none !important;
 }

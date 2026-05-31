@@ -4,6 +4,7 @@ import { Line, Doughnut } from 'react-chartjs-2';
 import html2pdf from 'html2pdf.js';
 import { supabase } from '../supabaseClient';
 import '../styles/FarmerDashboard.css';
+import logo from '../assets/logo.png';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement);
 
@@ -81,6 +82,14 @@ const FarmerDashboard = () => {
 
 
   const updateOrderStatus = async (orderId, newStatus) => {
+    const order = orders.find(o => o.id === orderId);
+    if (!order) return;
+
+    const oldStatus = order.status;
+    const isStockDeductedStatus = (status) => ['confirmed', 'shipped', 'delivered'].includes(status);
+    const wasDeducted = isStockDeductedStatus(oldStatus);
+    const isDeducted = isStockDeductedStatus(newStatus);
+
     const { error } = await supabase
       .from('orders')
       .update({ status: newStatus })
@@ -90,6 +99,33 @@ const FarmerDashboard = () => {
       setOrders(prev =>
         prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o)
       );
+
+      if (wasDeducted !== isDeducted) {
+        const product = products.find(p => p.name.toLowerCase() === order.product.toLowerCase());
+        if (product) {
+          let updatedQuantity = product.quantity;
+          if (isDeducted && !wasDeducted) {
+            updatedQuantity = Math.max(0, product.quantity - order.quantity);
+          } else if (!isDeducted && wasDeducted) {
+            updatedQuantity = product.quantity + order.quantity;
+          }
+
+          const { error: prodErr } = await supabase
+            .from('products')
+            .update({ quantity: updatedQuantity })
+            .eq('id', product.id);
+
+          if (!prodErr) {
+            setProducts(prev =>
+              prev.map(p => p.id === product.id ? { ...p, quantity: updatedQuantity } : p)
+            );
+            showNotification(`Stock updated for ${product.name}!`);
+          } else {
+            console.error('Error updating product stock:', prodErr);
+          }
+        }
+      }
+
       showNotification('Order status updated!');
       setShowOrderActionModal(false);
     } else {
@@ -363,12 +399,13 @@ const FarmerDashboard = () => {
   };
 
   // Overview Stats
-  const totalRevenue = orders.reduce((s, o) => s + o.amount, 0);
+  const revenueOrders = orders.filter(o => ['confirmed', 'shipped', 'delivered'].includes(o.status));
+  const totalRevenue = revenueOrders.reduce((s, o) => s + o.amount, 0);
   const activeOrders = orders.filter(o => ['pending', 'confirmed', 'shipped'].includes(o.status)).length;
   const totalStock = products.reduce((s, p) => s + p.quantity, 0);
-  const avgOrderValue = Math.round(totalRevenue / orders.length);
+  const avgOrderValue = revenueOrders.length > 0 ? Math.round(totalRevenue / revenueOrders.length) : 0;
   const completedOrders = orders.filter(o => o.status === 'delivered').length;
-  const completionRate = ((completedOrders / orders.length) * 100).toFixed(1);
+  const completionRate = orders.length > 0 ? ((completedOrders / orders.length) * 100).toFixed(1) : '0.0';
 
 
   const clearProductForm = () => {
@@ -526,6 +563,15 @@ const FarmerDashboard = () => {
     }
   };
 
+  const handlePitchAgain = (pitch) => {
+    const buyer = registeredBuyers.find(b => b.id === pitch.buyerId);
+    const targetBuyer = buyer || {
+      id: pitch.buyerId,
+      name: pitch.buyerName
+    };
+    openPitchModal(targetBuyer);
+  };
+
 
 
   // Report Functions
@@ -541,25 +587,35 @@ const FarmerDashboard = () => {
 
   const renderReportPreview = () => {
     const reportOrders = getFilteredReportOrders();
-    const rev = reportOrders.reduce((s, o) => s + o.amount, 0);
+    const activeReportOrders = reportOrders.filter(o => ['confirmed', 'shipped', 'delivered'].includes(o.status));
+    const rev = activeReportOrders.reduce((s, o) => s + o.amount, 0);
     const tot = reportOrders.length;
-    const qty = reportOrders.reduce((s, o) => s + o.quantity, 0);
-    const avg = tot > 0 ? Math.round(rev / tot) : 0;
+    const qty = activeReportOrders.reduce((s, o) => s + o.quantity, 0);
+    const avg = activeReportOrders.length > 0 ? Math.round(rev / activeReportOrders.length) : 0;
     const comp = reportOrders.filter(o => o.status === 'delivered').length;
     const pend = reportOrders.filter(o => o.status === 'pending').length;
     const rate = tot > 0 ? ((comp / tot) * 100).toFixed(1) : 0;
     const activeBuyers = registeredBuyers.length;
 
     const prodSales = {};
-    reportOrders.forEach(o => {
+    activeReportOrders.forEach(o => {
       if (!prodSales[o.product]) prodSales[o.product] = { qty: 0, rev: 0 };
       prodSales[o.product].qty += o.quantity;
       prodSales[o.product].rev += o.amount;
     });
 
     return (
-      <div className="report-preview">
-        <div className="report-header">
+      <div className="report-preview" style={{ position: 'relative', padding: '25px', backgroundColor: '#ffffff', borderRadius: '8px' }}>
+        {/* Top Right Corner Brand Logo */}
+        <div style={{ position: 'absolute', top: '25px', right: '25px' }}>
+          <img
+            src={logo}
+            alt="Farm Vantara Logo"
+            style={{ height: '40px', width: 'auto' }}
+          />
+        </div>
+
+        <div className="report-header" style={{ paddingRight: '180px', marginBottom: '20px' }}>
           <h2>{farmerInfo.farmName} - Sales Report</h2>
           <p>Generated: {new Date().toLocaleString()}</p>
           <p>Period: {reportFromDate && reportToDate ? `${formatDate(reportFromDate)} to ${formatDate(reportToDate)}` : 'All Time'}</p>
@@ -582,7 +638,12 @@ const FarmerDashboard = () => {
           <thead><tr><th>Product</th><th>Quantity (kg)</th><th>Revenue</th><th>Avg Price/kg</th></tr></thead>
           <tbody>
             {Object.entries(prodSales).map(([prod, d]) => (
-              <tr key={prod}><td><strong>{prod}</strong></td><td>{d.qty} kg</td><td>{formatCurrency(d.rev)}</td><td>{formatCurrency(Math.round(d.rev / d.qty))}</td></tr>
+              <tr key={prod}>
+                <td><strong>{prod}</strong></td>
+                <td>{d.qty} kg</td>
+                <td>{formatCurrency(d.rev)}</td>
+                <td>{formatCurrency(parseFloat((d.rev / d.qty).toFixed(2)))}</td>
+              </tr>
             ))}
           </tbody>
         </table>
@@ -614,8 +675,12 @@ const FarmerDashboard = () => {
             ))}
           </tbody>
         </table>
-      </div>
 
+        {/* Footer Copyright */}
+        <div style={{ marginTop: '40px', textAlign: 'center', borderTop: '1px solid #f1f5f9', paddingTop: '20px', fontSize: '11px', color: '#94a3b8', fontWeight: '500' }}>
+          &copy; {new Date().getFullYear()} Farm Vantara India Pvt Ltd. All Rights Reserved.
+        </div>
+      </div>
     );
   };
 
@@ -953,9 +1018,12 @@ const FarmerDashboard = () => {
                   <div className="buyer-detail"><i className="fas fa-truck"></i> {p.delivery}</div>
                 </div>
                 <div className="interest-area"><strong>💬 Your Message:</strong><br />{p.message.substring(0, 100)}{p.message.length > 100 ? '...' : ''}</div>
-                <div className="product-actions">
+                <div className="product-actions" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                   <button className="btn btn-info btn-small" onClick={() => { setSelectedPitch(p); setShowPitchDetailsModal(true); }}>
                     <i className="fas fa-eye"></i> View Details
+                  </button>
+                  <button className="btn btn-primary btn-small" onClick={() => handlePitchAgain(p)}>
+                    <i className="fas fa-paper-plane"></i> Pitch Again
                   </button>
                 </div>
               </div>
@@ -1427,12 +1495,62 @@ const FarmerDashboard = () => {
               <h2>Update Order Status</h2>
               <button className="modal-close" onClick={() => setShowOrderActionModal(false)}>&times;</button>
             </div>
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-              {['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'].map(s => (
-                <button key={s} className={`btn ${selectedOrder.status === s ? 'btn-primary' : 'btn-secondary'}`} onClick={() => updateOrderStatus(selectedOrder.id, s)}>
-                  {s}
-                </button>
-              ))}
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center', padding: '15px 0' }}>
+              {['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'].map(s => {
+                const statusOrder = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
+                const currentIndex = statusOrder.indexOf(selectedOrder.status);
+                const targetIndex = statusOrder.indexOf(s);
+                const isDisabled = targetIndex <= currentIndex;
+                const isCurrent = selectedOrder.status === s;
+
+                let btnStyle = {
+                  cursor: 'pointer',
+                  padding: '10px 20px',
+                  borderRadius: '8px',
+                  fontWeight: '600',
+                  textTransform: 'uppercase',
+                  fontSize: '12px',
+                  transition: 'all 0.2s ease',
+                  border: '1px solid transparent'
+                };
+
+                if (isDisabled) {
+                  if (isCurrent) {
+                    btnStyle = {
+                      ...btnStyle,
+                      backgroundColor: '#cbd5e1',
+                      color: '#475569',
+                      borderColor: '#94a3b8',
+                      cursor: 'not-allowed',
+                      opacity: 0.9,
+                      pointerEvents: 'none',
+                      boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)'
+                    };
+                  } else {
+                    btnStyle = {
+                      ...btnStyle,
+                      backgroundColor: '#f1f5f9',
+                      color: '#cbd5e1',
+                      borderColor: '#e2e8f0',
+                      cursor: 'not-allowed',
+                      opacity: 0.6,
+                      pointerEvents: 'none'
+                    };
+                  }
+                }
+
+                return (
+                  <button
+                    key={s}
+                    className={`btn ${isCurrent ? 'btn-primary' : 'btn-secondary'}`}
+                    style={btnStyle}
+                    disabled={isDisabled}
+                    onClick={() => updateOrderStatus(selectedOrder.id, s)}
+                  >
+                    {s}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>

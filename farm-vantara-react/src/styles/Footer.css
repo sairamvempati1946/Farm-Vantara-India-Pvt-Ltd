@@ -235,44 +235,65 @@
 
 .footer-bottom-content {
   display: flex;
+  flex-direction: column !important;
   justify-content: center;
   align-items: center;
+  gap: 12px !important;
+  width: 100% !important;
 }
 
-.copyright-line {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 12px;
-  margin: 0;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  gap: 0;
+.copyright-text {
+  color: rgba(255, 255, 255, 0.7) !important;
+  font-size: 13.5px !important;
+  font-weight: 500 !important;
+  margin: 0 !important;
+  text-align: center !important;
+  letter-spacing: 0.01em !important;
+  line-height: 1.5 !important;
 }
 
-.copyright-line a {
-  color: rgba(255, 255, 255, 0.6);
-  text-decoration: none;
-  transition: color 0.3s ease;
+.footer-bottom-meta {
+  color: rgba(255, 255, 255, 0.55) !important;
+  font-size: 12px !important;
+  margin: 0 !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 0 !important;
+  line-height: 1.6 !important;
 }
 
-.copyright-line a:hover,
-.copyright-line a:focus {
-  color: #27ae60;
-  text-decoration: underline;
-  outline: none;
+.footer-bottom-meta a {
+  color: rgba(255, 255, 255, 0.55) !important;
+  text-decoration: none !important;
+  transition: color 0.3s ease !important;
 }
 
-.copyright-line i {
-  color: #27ae60;
-  font-size: 11px;
-  margin-right: 4px;
+.footer-bottom-meta a:hover,
+.footer-bottom-meta a:focus {
+  color: #27ae60 !important;
+  text-decoration: underline !important;
+  outline: none !important;
+}
+
+.footer-bottom-meta i {
+  color: #27ae60 !important;
+  font-size: 11px !important;
+  margin-right: 4px !important;
+}
+
+.footer-bottom-meta .inline-group {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
 }
 
 .copyright-separator {
-  color: rgba(255, 255, 255, 0.3);
-  margin: 0 10px;
+  color: rgba(255, 255, 255, 0.3) !important;
+  margin: 0 10px !important;
 }
+
 
 /* ========================================
    RESPONSIVE DESIGN
