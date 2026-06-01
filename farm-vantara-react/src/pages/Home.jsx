@@ -15,7 +15,8 @@ const Home = () => {
   const [counts, setCounts] = useState({
     farmers: 0,
     cities: 0,
-    satisfaction: 0
+    satisfaction: 0,
+    income: 0
   });
 
   // Refs
@@ -169,6 +170,7 @@ const Home = () => {
     animateCounter('farmers', 5000, 2000);
     animateCounter('cities', 250, 1500);
     animateCounter('satisfaction', 98, 1000);
+    animateCounter('income', 40, 1200);
 
     // Header scroll effect
     const handleScroll = () => {
@@ -243,6 +245,7 @@ const Home = () => {
         if (type === 'farmers') return { ...prev, farmers: Math.floor(start) };
         if (type === 'cities') return { ...prev, cities: Math.floor(start) };
         if (type === 'satisfaction') return { ...prev, satisfaction: Math.floor(start) };
+        if (type === 'income') return { ...prev, income: Math.floor(start) };
         return prev;
       });
 
@@ -251,6 +254,7 @@ const Home = () => {
           if (type === 'farmers') return { ...prev, farmers: target };
           if (type === 'cities') return { ...prev, cities: target };
           if (type === 'satisfaction') return { ...prev, satisfaction: target };
+          if (type === 'income') return { ...prev, income: target };
           return prev;
         });
         clearInterval(timer);
@@ -538,6 +542,15 @@ const Home = () => {
                 <div className="stat-info">
                   <span className="stat-number">{counts.satisfaction}%</span>
                   <span className="stat-label">Satisfaction Rate</span>
+                </div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon">
+                  <i className="fas fa-chart-line"></i>
+                </div>
+                <div className="stat-info">
+                  <span className="stat-number">{counts.income}%</span>
+                  <span className="stat-label">Average Income Increased</span>
                 </div>
               </div>
             </div>

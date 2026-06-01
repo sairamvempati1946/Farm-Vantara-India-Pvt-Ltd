@@ -201,7 +201,8 @@ const FarmerDashboard = () => {
             const mappedOrders = sortedOrders.map((o, idx) => ({
               ...o,
               displayId: 'ORD - ' + String(idx + 1).padStart(3, '0'),
-              date: o.created_at ? o.created_at.split('T')[0] : new Date().toISOString().split('T')[0]
+              date: o.created_at ? o.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
+              deliveryAddress: o.delivery_address || 'N/A'
             }));
             setOrders(mappedOrders);
           }
@@ -290,14 +291,80 @@ const FarmerDashboard = () => {
     }
   }, [farmerInfo]);
 
+  // Realtime Supabase Subscription for new orders arriving for this farmer
+  useEffect(() => {
+    if (!farmerInfo.id) return;
+
+    console.log("Subscribing to realtime orders for farmer:", farmerInfo.id);
+
+    const ordersChannel = supabase
+      .channel(`farmer_orders_${farmerInfo.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'orders'
+        },
+        (payload) => {
+          console.log('Realtime Order Event Received:', payload.new);
+          const newOrder = payload.new;
+          if (!newOrder || String(newOrder.farmer_id) !== String(farmerInfo.id)) {
+            return;
+          }
+
+          // Play a notification sound
+          try {
+            const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-200.wav');
+            audio.volume = 0.5;
+            audio.play();
+          } catch (audioErr) {
+            console.log('Audio playback blocked/failed:', audioErr);
+          }
+
+          // Show a live toast notification
+          showNotification(`🎉 New Order Placed! Product: ${newOrder.product} (${newOrder.quantity} kg)`);
+
+          // Append to state
+          setOrders(prev => {
+            if (prev.some(o => o.id === newOrder.id)) return prev;
+            const updatedOrders = [...prev, {
+              ...newOrder,
+              displayId: 'ORD - ' + String(prev.length + 1).padStart(3, '0'),
+              date: newOrder.created_at ? newOrder.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
+              deliveryAddress: newOrder.delivery_address || 'N/A'
+            }];
+            return updatedOrders.sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(ordersChannel);
+    };
+  }, [farmerInfo.id]);
+
   // Registered Buyers
   const [registeredBuyers, setRegisteredBuyers] = useState([]);
 
   // Pitches State
   const [farmerPitches, setFarmerPitches] = useState([]);
 
+  // Notifications State
+  const [notifications, setNotifications] = useState([]);
+
   // UI State
   const [activeSection, setActiveSection] = useState('overview');
+
+  // Scroll to top on activeSection changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    const mainContent = document.querySelector('.main-content');
+    if (mainContent) {
+      mainContent.scrollTop = 0;
+    }
+  }, [activeSection]);
   const [currentImageData, setCurrentImageData] = useState(null);
   const [editingProductId, setEditingProductId] = useState(null);
   const [orderFilter, setOrderFilter] = useState('all');
@@ -359,11 +426,11 @@ const FarmerDashboard = () => {
   const getProductIcon = (cat) => { const icons = { 'grains': 'fa-wheat-alt', 'vegetables': 'fa-carrot', 'fruits': 'fa-apple-alt', 'pulses': 'fa-seedling' }; return icons[cat] || 'fa-seedling'; };
 
   const showNotification = (msg) => {
-    const notification = document.createElement('div');
-    notification.className = 'notification';
-    notification.innerHTML = `<i class="fas fa-check-circle" style="color:var(--primary-green);margin-right:10px;"></i>${msg}`;
-    document.getElementById('notificationsContainer')?.appendChild(notification);
-    setTimeout(() => notification.remove(), 3000);
+    const id = Date.now();
+    setNotifications(prev => [...prev, { id, message: msg }]);
+    setTimeout(() => {
+      setNotifications(prev => prev.filter(n => n.id !== id));
+    }, 3000);
   };
 
   // Update filtered orders
@@ -402,6 +469,7 @@ const FarmerDashboard = () => {
   const revenueOrders = orders.filter(o => ['confirmed', 'shipped', 'delivered'].includes(o.status));
   const totalRevenue = revenueOrders.reduce((s, o) => s + o.amount, 0);
   const activeOrders = orders.filter(o => ['pending', 'confirmed', 'shipped'].includes(o.status)).length;
+  const pendingPitchesCount = farmerPitches.filter(p => p.status === 'pending').length;
   const totalStock = products.reduce((s, p) => s + p.quantity, 0);
   const avgOrderValue = revenueOrders.length > 0 ? Math.round(totalRevenue / revenueOrders.length) : 0;
   const completedOrders = orders.filter(o => o.status === 'delivered').length;
@@ -605,20 +673,21 @@ const FarmerDashboard = () => {
     });
 
     return (
-      <div className="report-preview" style={{ position: 'relative', padding: '25px', backgroundColor: '#ffffff', borderRadius: '8px' }}>
-        {/* Top Right Corner Brand Logo */}
-        <div style={{ position: 'absolute', top: '25px', right: '25px' }}>
+      <div className="report-preview" style={{ padding: '25px', backgroundColor: '#ffffff', borderRadius: '8px' }}>
+        {/* Big Logo on the Right Corner */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%', marginBottom: '10px' }}>
           <img
             src={logo}
             alt="Farm Vantara Logo"
-            style={{ height: '40px', width: 'auto' }}
+            style={{ height: '70px', width: 'auto', display: 'block' }}
           />
         </div>
 
-        <div className="report-header" style={{ paddingRight: '180px', marginBottom: '20px' }}>
-          <h2>{farmerInfo.farmName} - Sales Report</h2>
-          <p>Generated: {new Date().toLocaleString()}</p>
-          <p>Period: {reportFromDate && reportToDate ? `${formatDate(reportFromDate)} to ${formatDate(reportToDate)}` : 'All Time'}</p>
+        {/* Centered Title and Date Details */}
+        <div className="report-header" style={{ textAlign: 'center', borderBottom: '2px solid #27ae60', paddingBottom: '15px', marginBottom: '25px' }}>
+          <h2 style={{ margin: '0 auto 10px auto', color: '#219653', fontSize: '28px', fontWeight: '700' }}>{farmerInfo.farmName} - Sales Report</h2>
+          <p style={{ margin: '5px 0 0 0', color: '#636e72', fontSize: '13px', fontWeight: '500' }}>Generated: {new Date().toLocaleString()}</p>
+          <p style={{ margin: '2px 0 0 0', color: '#636e72', fontSize: '13px', fontWeight: '500' }}>Period: {reportFromDate && reportToDate ? `${formatDate(reportFromDate)} to ${formatDate(reportToDate)}` : 'All Time'}</p>
         </div>
         <div className="report-summary">
           <div className="report-summary-card"><h4>Total Revenue</h4><div className="value">{formatCurrency(rev)}</div></div>
@@ -691,8 +760,9 @@ const FarmerDashboard = () => {
         margin: [0.5, 0.5, 0.5, 0.5],
         filename: `${farmerInfo.farmName.toLowerCase().replace(/ /g, '-')}-report-${new Date().toISOString().split('T')[0]}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
       };
       html2pdf().set(opt).from(element).save();
       showNotification('PDF downloaded!');
@@ -832,6 +902,25 @@ const FarmerDashboard = () => {
                 <div className="detail-value">₹{p.price}/kg</div>
               </div>
             </div>
+            {p.quantity > 100 && p.quantity < 500 && (
+              <div style={{
+                backgroundColor: '#fff9db',
+                border: '1px solid #ffe066',
+                color: '#856404',
+                padding: '8px 12px',
+                borderRadius: '8px',
+                fontSize: '11px',
+                fontWeight: '600',
+                marginTop: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
+              }}>
+                <i className="fas fa-exclamation-triangle" style={{ color: '#f59f00', fontSize: '13px' }}></i>
+                <span>Stock Alert: Medium Stock Level (100kg - 500kg)</span>
+              </div>
+            )}
             <div className="product-actions">
               <button className="btn btn-info btn-small" onClick={() => { setSelectedProduct(p); setShowProductDetailModal(true); }}>
                 <i className="fas fa-eye"></i> View
@@ -865,6 +954,25 @@ const FarmerDashboard = () => {
                 <div className="detail-value"><strong>{p.quantity} kg</strong></div>
               </div>
             </div>
+            {p.quantity > 100 && p.quantity < 500 && (
+              <div style={{
+                backgroundColor: '#fff9db',
+                border: '1px solid #ffe066',
+                color: '#856404',
+                padding: '8px 12px',
+                borderRadius: '8px',
+                fontSize: '11px',
+                fontWeight: '600',
+                marginTop: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
+              }}>
+                <i className="fas fa-exclamation-triangle" style={{ color: '#f59f00', fontSize: '13px' }}></i>
+                <span>Stock Alert: Medium Stock Level (100kg - 500kg)</span>
+              </div>
+            )}
             <div className="product-actions">
               <button className="btn btn-primary btn-small" onClick={() => openStockUpdate(p)}>
                 <i className="fas fa-edit"></i> Update Stock
@@ -1138,10 +1246,10 @@ const FarmerDashboard = () => {
               <li><a className={activeSection === 'overview' ? 'active' : ''} onClick={() => setActiveSection('overview')}><i className="fas fa-home"></i> Overview</a></li>
               <li><a className={activeSection === 'products' ? 'active' : ''} onClick={() => setActiveSection('products')}><i className="fas fa-seedling"></i> My Products</a></li>
               <li><a className={activeSection === 'stock' ? 'active' : ''} onClick={() => setActiveSection('stock')}><i className="fas fa-warehouse"></i> Live Stock</a></li>
-              <li><a className={activeSection === 'orders' ? 'active' : ''} onClick={() => setActiveSection('orders')}><i className="fas fa-shopping-cart"></i> Orders</a></li>
+              <li><a className={activeSection === 'orders' ? 'active' : ''} onClick={() => setActiveSection('orders')}><i className="fas fa-shopping-cart"></i> Orders {activeOrders > 0 && <span style={{ backgroundColor: '#e74c3c', color: 'white', padding: '2px 8px', borderRadius: '10px', fontSize: '11px', fontWeight: 'bold', marginLeft: '8px', display: 'inline-block' }}>{activeOrders}</span>}</a></li>
               <li><a className={activeSection === 'sales' ? 'active' : ''} onClick={() => setActiveSection('sales')}><i className="fas fa-chart-line"></i> Sales Reports</a></li>
               <li><a className={activeSection === 'buyers' ? 'active' : ''} onClick={() => setActiveSection('buyers')}><i className="fas fa-users"></i> Buyer Marketplace</a></li>
-              <li><a className={activeSection === 'pitches' ? 'active' : ''} onClick={() => setActiveSection('pitches')}><i className="fas fa-handshake"></i> My Pitches</a></li>
+              <li><a className={activeSection === 'pitches' ? 'active' : ''} onClick={() => setActiveSection('pitches')}><i className="fas fa-handshake"></i> My Pitches {pendingPitchesCount > 0 && <span style={{ backgroundColor: '#2d9cdb', color: 'white', padding: '2px 8px', borderRadius: '10px', fontSize: '11px', fontWeight: 'bold', marginLeft: '8px', display: 'inline-block' }}>{pendingPitchesCount}</span>}</a></li>
               <li><a className={activeSection === 'settings' ? 'active' : ''} onClick={() => setActiveSection('settings')}><i className="fas fa-cog"></i> Settings</a></li>
             </ul>
           </nav>
@@ -1253,7 +1361,14 @@ const FarmerDashboard = () => {
       </div>
 
       {/* Notifications Container */}
-      <div id="notificationsContainer"></div>
+      <div id="notificationsContainer">
+        {notifications.map(n => (
+          <div key={n.id} className="notification">
+            <i className="fas fa-check-circle" style={{ color: 'var(--primary-green)', marginRight: '10px' }}></i>
+            {n.message}
+          </div>
+        ))}
+      </div>
 
       {/* Profile Modal */}
       {showProfileModal && (
@@ -1430,7 +1545,7 @@ const FarmerDashboard = () => {
               <div className="detail-row"><strong>Quantity:</strong> {selectedOrder.quantity} kg</div>
               <div className="detail-row"><strong>Amount:</strong> {formatCurrency(selectedOrder.amount)}</div>
               <div className="detail-row"><strong>Status:</strong> <span className={`order-status ${getOrderStatusClass(selectedOrder.status)}`}>{selectedOrder.status}</span></div>
-              <div className="detail-row"><strong>Delivery:</strong> {selectedOrder.deliveryAddress || 'N/A'}</div>
+              <div className="detail-row"><strong>Delivery:</strong> {selectedOrder.delivery_address || selectedOrder.deliveryAddress || 'N/A'}</div>
             </div>
             <div className="form-buttons">
               <button className="btn btn-primary" onClick={() => setShowOrderDetailsModal(false)}>Close</button>
@@ -1500,7 +1615,7 @@ const FarmerDashboard = () => {
                 const statusOrder = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
                 const currentIndex = statusOrder.indexOf(selectedOrder.status);
                 const targetIndex = statusOrder.indexOf(s);
-                const isDisabled = targetIndex <= currentIndex;
+                const isDisabled = targetIndex <= currentIndex || (s === 'cancelled' && ['shipped', 'delivered', 'cancelled'].includes(selectedOrder.status));
                 const isCurrent = selectedOrder.status === s;
 
                 let btnStyle = {

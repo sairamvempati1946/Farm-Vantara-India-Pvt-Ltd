@@ -1,5 +1,6 @@
 // App.jsx
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
@@ -32,13 +33,53 @@ import Goals from "./pages/Goals";
 import FarmerDashboard from "./pages/FarmerDashboard";
 import Algorithm from "./pages/Algorithm";
 import AdminDashboard from "./pages/AdminDashboard";
-// import FarmerDashboard from "./pages/FarmerDashboard";
-// import AdminPanel from "./pages/AdminPanel";
+
+function PageTitleManager() {
+  const location = useLocation();
+
+  useEffect(() => {
+    const titleMap = {
+      "/": "Home | Farm Vantara - Connecting Farmers to Markets",
+      "/register": "Register & Get Started | Farm Vantara",
+      "/farmers": "For Farmers | Farm Vantara",
+      "/business": "For Business Buyers | Farm Vantara",
+      "/impact": "Our Ecological & Economic Impact | Farm Vantara",
+      "/contact": "Contact Us | Farm Vantara",
+      "/about": "About Us & Our Core Mission | Farm Vantara",
+      "/shop": "Shop Farm-Fresh Produce | Farm Vantara",
+      "/process": "Our Sustainable Process | Farm Vantara",
+      "/market-prices": "Live Market Prices & Analytics | Farm Vantara",
+      "/crop-listing": "Crop Listing Catalog | Farm Vantara",
+      "/pricing": "Volume Pricing & Procurement | Farm Vantara",
+      "/blog": "Blog & Agricultural Insights | Farm Vantara",
+      "/faq": "Frequently Asked Questions | Farm Vantara",
+      "/payments": "Secure Payment Solutions | Farm Vantara",
+      "/logistics": "Logistics & Supply Chain Network | Farm Vantara",
+      "/business-solutions": "Business Sourcing Solutions | Farm Vantara",
+      "/case-studies": "Success Stories & Case Studies | Farm Vantara",
+      "/researchpapers": "Agricultural & Environmental Research Papers | Farm Vantara",
+      "/login": "Secure Account Login | Farm Vantara",
+      "/buyer-dashboard": "Buyer Dashboard | Farm Vantara",
+      "/guides": "Farming Guides & Best Practices | Farm Vantara",
+      "/goals": "Our Vision & Environmental Goals | Farm Vantara",
+      "/farmer-dashboard": "Farmer Dashboard | Farm Vantara",
+      "/algorithm": "Pricing Matching Algorithm | Farm Vantara",
+      "/quality": "Quality Assurance & Standards | Farm Vantara",
+      "/admin": "Admin Control Panel | Farm Vantara",
+    };
+
+    const currentTitle = titleMap[location.pathname] || "Farm Vantara - Connecting Farmers to Markets";
+    document.title = currentTitle;
+  }, [location]);
+
+  return null;
+}
 
 function App() {
   return (
     <BrowserRouter>
-    <ScrollToTop />
+      <PageTitleManager />
+      <ScrollToTop />
       <Navbar />
       <Routes>
         {/* Active routes */}

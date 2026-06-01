@@ -1106,11 +1106,8 @@ textarea {
     padding: 20px;
     border-radius: 12px;
     text-align: center;
-}
-
-.report-summary-card .value {
-    font-size: 24px;
-    font-weight: 700;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
 }
 
 .report-section-title {
@@ -1119,11 +1116,18 @@ textarea {
     margin: 25px 0 15px;
     padding-bottom: 10px;
     border-bottom: 2px solid var(--primary-green);
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
 }
 
 .report-table {
     width: 100%;
     border-collapse: collapse;
+}
+
+.report-table tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
 }
 
 .report-table th,

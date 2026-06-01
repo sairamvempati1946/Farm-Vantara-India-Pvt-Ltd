@@ -172,103 +172,93 @@ const BuyerDashboard = () => {
         }
     }, [buyerInfo]);
 
-    // ============ SUPABASE DATA CONNECTIVITY ============
+    // Scroll to top on currentSection changes
     useEffect(() => {
-        const fetchDBData = async () => {
-            setLoading(true);
-            try {
-                // Get session user
-                const userStr = localStorage.getItem('farmvantara_user') || sessionStorage.getItem('farmvantara_user');
-                if (!userStr || userStr === "undefined" || userStr === "null") {
-                    window.location.href = "/login";
-                    return;
-                }
-                const sessionUser = JSON.parse(userStr);
+        window.scrollTo(0, 0);
+        const mainContent = document.querySelector('.main-content');
+        if (mainContent) {
+            mainContent.scrollTop = 0;
+        }
+    }, [currentSection]);
 
-                // 1. Fetch live business profile
-                const { data: profile, error: profileErr } = await supabase
+    // ============ SUPABASE DATA CONNECTIVITY ============
+    const fetchDBData = async () => {
+        setLoading(true);
+        try {
+            // Get session user
+            const userStr = localStorage.getItem('farmvantara_user') || sessionStorage.getItem('farmvantara_user');
+            if (!userStr || userStr === "undefined" || userStr === "null") {
+                window.location.href = "/login";
+                return;
+            }
+            const sessionUser = JSON.parse(userStr);
+
+            // 1. Fetch live business profile
+            const { data: profile, error: profileErr } = await supabase
+                .from('businesses')
+                .select('*')
+                .eq('user_id', sessionUser.id)
+                .single();
+
+            let activeBuyerProfile = null;
+            if (!profileErr && profile) {
+                activeBuyerProfile = profile;
+                setBuyerInfo({
+                    id: profile.id,
+                    userId: profile.user_id,
+                    name: profile.full_name,
+                    businessName: profile.business_name,
+                    businessType: profile.business_type,
+                    contactPerson: profile.full_name,
+                    phone: profile.phone,
+                    email: profile.email,
+                    state: profile.state,
+                    gstNumber: profile.gst_number || '',
+                    monthlyRequirement: profile.monthly_requirement || 0,
+                    preferredCrops: profile.preferred_crops || '',
+                    deliveryAddress: profile.delivery_address || `${profile.business_name}, ${profile.state}`
+                });
+            } else if (profileErr && profileErr.code === 'PGRST116') {
+                // Auto-create missing business profile in DB!
+                console.log("Auto-creating missing business profile for user:", sessionUser.id);
+                const { data: newProfile, error: createErr } = await supabase
                     .from('businesses')
-                    .select('*')
-                    .eq('user_id', sessionUser.id)
+                    .insert([{
+                        user_id: sessionUser.id,
+                        full_name: sessionUser.name || 'Business Buyer',
+                        email: sessionUser.email,
+                        phone: sessionUser.phone || '9876543210',
+                        state: 'Delhi',
+                        business_name: sessionUser.name ? `${sessionUser.name} Supermarket` : 'Fresh Mart Supermarket',
+                        business_type: 'retailer',
+                        gst_number: '',
+                        monthly_requirement: 500.00,
+                        preferred_crops: 'Wheat, Rice',
+                        delivery_address: '123, MG Road, Connaught Place, New Delhi - 110001'
+                    }])
+                    .select()
                     .single();
 
-                let activeBuyerProfile = null;
-                if (!profileErr && profile) {
-                    activeBuyerProfile = profile;
+                if (!createErr && newProfile) {
+                    activeBuyerProfile = newProfile;
                     setBuyerInfo({
-                        id: profile.id,
-                        userId: profile.user_id,
-                        name: profile.full_name,
-                        businessName: profile.business_name,
-                        businessType: profile.business_type,
-                        contactPerson: profile.full_name,
-                        phone: profile.phone,
-                        email: profile.email,
-                        state: profile.state,
-                        gstNumber: profile.gst_number || '',
-                        monthlyRequirement: profile.monthly_requirement || 0,
-                        preferredCrops: profile.preferred_crops || '',
-                        deliveryAddress: profile.delivery_address || `${profile.business_name}, ${profile.state}`
+                        id: newProfile.id,
+                        userId: newProfile.user_id,
+                        name: newProfile.full_name,
+                        businessName: newProfile.business_name,
+                        businessType: newProfile.business_type,
+                        contactPerson: newProfile.full_name,
+                        phone: newProfile.phone,
+                        email: newProfile.email,
+                        state: newProfile.state,
+                        gstNumber: newProfile.gst_number || '',
+                        monthlyRequirement: newProfile.monthly_requirement || 0,
+                        preferredCrops: newProfile.preferred_crops || '',
+                        deliveryAddress: newProfile.delivery_address || `${newProfile.business_name}, ${newProfile.state}`
                     });
-                } else if (profileErr && profileErr.code === 'PGRST116') {
-                    // Auto-create missing business profile in DB!
-                    console.log("Auto-creating missing business profile for user:", sessionUser.id);
-                    const { data: newProfile, error: createErr } = await supabase
-                        .from('businesses')
-                        .insert([{
-                            user_id: sessionUser.id,
-                            full_name: sessionUser.name || 'Business Buyer',
-                            email: sessionUser.email,
-                            phone: sessionUser.phone || '9876543210',
-                            state: 'Delhi',
-                            business_name: sessionUser.name ? `${sessionUser.name} Supermarket` : 'Fresh Mart Supermarket',
-                            business_type: 'retailer',
-                            gst_number: '',
-                            monthly_requirement: 500.00,
-                            preferred_crops: 'Wheat, Rice',
-                            delivery_address: '123, MG Road, Connaught Place, New Delhi - 110001'
-                        }])
-                        .select()
-                        .single();
-
-                    if (!createErr && newProfile) {
-                        activeBuyerProfile = newProfile;
-                        setBuyerInfo({
-                            id: newProfile.id,
-                            userId: newProfile.user_id,
-                            name: newProfile.full_name,
-                            businessName: newProfile.business_name,
-                            businessType: newProfile.business_type,
-                            contactPerson: newProfile.full_name,
-                            phone: newProfile.phone,
-                            email: newProfile.email,
-                            state: newProfile.state,
-                            gstNumber: newProfile.gst_number || '',
-                            monthlyRequirement: newProfile.monthly_requirement || 0,
-                            preferredCrops: newProfile.preferred_crops || '',
-                            deliveryAddress: newProfile.delivery_address || `${newProfile.business_name}, ${newProfile.state}`
-                        });
-                    } else {
-                        console.error("Failed to auto-create business profile:", createErr);
-                        // Fallback as backup
-                        setBuyerInfo({
-                            id: sessionUser.id,
-                            userId: sessionUser.id,
-                            name: sessionUser.name || 'Fresh Mart',
-                            businessName: sessionUser.name || 'Fresh Mart Supermarket',
-                            contactPerson: sessionUser.name || 'Rajesh',
-                            phone: sessionUser.phone || '9876543210',
-                            email: sessionUser.email || 'freshmart@example.com',
-                            state: 'Delhi',
-                            gstNumber: '',
-                            monthlyRequirement: 500,
-                            preferredCrops: 'Wheat, Rice',
-                            deliveryAddress: '123, MG Road, Connaught Place, New Delhi - 110001'
-                        });
-                    }
                 } else {
-                    console.error("Error or missing profile in businesses:", profileErr);
-                    // Fallback to local session data if DB profile doesn't exist yet
+                    console.error("Failed to auto-create business profile:", createErr);
+                    // Fallback as backup
                     setBuyerInfo({
                         id: sessionUser.id,
                         userId: sessionUser.id,
@@ -284,111 +274,156 @@ const BuyerDashboard = () => {
                         deliveryAddress: '123, MG Road, Connaught Place, New Delhi - 110001'
                     });
                 }
-
-                const buyerId = activeBuyerProfile ? activeBuyerProfile.id : sessionUser.id;
-
-                // 2. Fetch live products
-                const { data: dbProducts, error: prodErr } = await supabase.from('products').select('*');
-                let loadedProducts = [];
-                if (!prodErr && dbProducts) {
-                    loadedProducts = dbProducts.map(p => ({
-                        id: p.id,
-                        farmerId: p.farmer_id,
-                        name: p.name,
-                        category: p.category || 'vegetables',
-                        quantity: parseFloat(p.quantity) || 0,
-                        price: parseFloat(p.price) || 0,
-                        description: p.description || '',
-                        imageData: p.image_url
-                    }));
-                    setProducts(loadedProducts);
-                }
-
-                // 3. Fetch live farmers
-                const { data: dbFarmers, error: farmErr } = await supabase.from('farmers').select('*');
-                if (!farmErr && dbFarmers) {
-                    setFarmers(dbFarmers.map(f => ({
-                        id: f.id,
-                        name: f.full_name || f.farm_name,
-                        location: f.state || 'Punjab',
-                        rating: 4.8,
-                        verified: true,
-                        established: '2015',
-                        totalProducts: loadedProducts.filter(p => p.farmerId === f.id).length,
-                        totalSales: 10000,
-                        description: `Farm name: ${f.farm_name}. Experience: ${f.experience} years. Village: ${f.village || ''}. Selected Crops: ${f.selected_crops || ''}`
-                    })));
-                }
-
-                // 4. Fetch live orders
-                const { data: dbOrders, error: ordErr } = await supabase
-                    .from('orders')
-                    .select('*')
-                    .eq('buyer_id', buyerId);
-
-                if (!ordErr && dbOrders) {
-                    const sortedOrders = [...dbOrders].sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
-                    setOrders(sortedOrders.map((o, idx) => {
-                        const matchedFarmer = dbFarmers ? dbFarmers.find(f => f.id === o.farmer_id) : null;
-                        const resolvedFarmerName = matchedFarmer 
-                            ? (matchedFarmer.full_name || matchedFarmer.farm_name) 
-                            : 'Verified Farmer';
-
-                        const initials = getFarmerInitials(resolvedFarmerName);
-                        return {
-                            id: o.id,
-                            displayId: `${initials} - ORD - ${String(idx + 1).padStart(3, '0')}`,
-                            farmerId: o.farmer_id,
-                            farmerName: resolvedFarmerName,
-                            productId: o.product_id || '',
-                            productName: o.product || o.special_instructions || 'Farm Produce',
-                            quantity: parseFloat(o.quantity) || 50,
-                            amount: parseFloat(o.amount) || 0,
-                            status: o.status || 'pending',
-                            date: o.created_at ? o.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
-                            deliveryAddress: o.delivery_address || 'Registered Address'
-                        };
-                    }));
-                }
-
-                // 5. Fetch live pitches
-                const { data: dbPitches, error: pitchErr } = await supabase
-                    .from('pitches')
-                    .select('*')
-                    .eq('buyer_id', buyerId);
-
-                if (!pitchErr && dbPitches) {
-                    const sortedPitches = [...dbPitches].sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
-                    setReceivedPitches(sortedPitches.map((p, idx) => {
-                        const matchedFarmer = dbFarmers ? dbFarmers.find(f => f.id === p.farmer_id) : null;
-                        const resolvedFarmerName = matchedFarmer 
-                            ? (matchedFarmer.full_name || matchedFarmer.farm_name) 
-                            : 'Farmer partner';
-
-                        return {
-                            id: p.id,
-                            displayId: 'PIT - ' + String(idx + 1).padStart(3, '0'),
-                            farmerId: p.farmer_id,
-                            farmerName: resolvedFarmerName,
-                            productId: p.product_id || '',
-                            productName: p.product_name || 'Produce offer',
-                            quantity: parseFloat(p.quantity) || 100,
-                            price: parseFloat(p.price) || 50,
-                            total: parseFloat(p.quantity) * parseFloat(p.price),
-                            message: p.message || '',
-                            status: p.status || 'pending',
-                            date: p.created_at ? p.created_at.split('T')[0] : new Date().toISOString().split('T')[0]
-                        };
-                    }));
-                }
-
-            } catch (err) {
-                console.error("Database connection error:", err);
-            } finally {
-                setLoading(false);
+            } else {
+                console.error("Error or missing profile in businesses:", profileErr);
+                // Fallback to local session data if DB profile doesn't exist yet
+                setBuyerInfo({
+                    id: sessionUser.id,
+                    userId: sessionUser.id,
+                    name: sessionUser.name || 'Fresh Mart',
+                    businessName: sessionUser.name || 'Fresh Mart Supermarket',
+                    contactPerson: sessionUser.name || 'Rajesh',
+                    phone: sessionUser.phone || '9876543210',
+                    email: sessionUser.email || 'freshmart@example.com',
+                    state: 'Delhi',
+                    gstNumber: '',
+                    monthlyRequirement: 500,
+                    preferredCrops: 'Wheat, Rice',
+                    deliveryAddress: '123, MG Road, Connaught Place, New Delhi - 110001'
+                });
             }
-        };
 
+            const buyerId = activeBuyerProfile ? activeBuyerProfile.id : sessionUser.id;
+
+            // 2. Fetch live products
+            const { data: dbProducts, error: prodErr } = await supabase.from('products').select('*');
+            let loadedProducts = [];
+            if (!prodErr && dbProducts) {
+                loadedProducts = dbProducts.map(p => ({
+                    id: p.id,
+                    farmerId: p.farmer_id,
+                    name: p.name,
+                    category: p.category || 'vegetables',
+                    quantity: parseFloat(p.quantity) || 0,
+                    price: parseFloat(p.price) || 0,
+                    description: p.description || '',
+                    imageData: p.image_url
+                }));
+                setProducts(loadedProducts);
+            }
+
+            // 3. Fetch live farmers
+            const { data: dbFarmers, error: farmErr } = await supabase.from('farmers').select('*');
+            if (!farmErr && dbFarmers) {
+                setFarmers(dbFarmers.map(f => ({
+                    id: f.id,
+                    name: f.full_name || f.farm_name,
+                    location: f.state || 'Punjab',
+                    rating: 4.8,
+                    verified: true,
+                    established: '2015',
+                    totalProducts: loadedProducts.filter(p => p.farmerId === f.id).length,
+                    totalSales: 10000,
+                    description: `Farm name: ${f.farm_name}. Experience: ${f.experience} years. Village: ${f.village || ''}. Selected Crops: ${f.selected_crops || ''}`
+                })));
+            }
+
+            // Fetch all database orders to compute farmer-specific sequential indices
+            const { data: allDbOrders, error: allOrdErr } = await supabase
+                .from('orders')
+                .select('id, farmer_id, created_at');
+
+            let orderNumberMap = {};
+            if (!allOrdErr && allDbOrders) {
+                // Group all orders by farmer_id
+                const ordersByFarmer = {};
+                allDbOrders.forEach(o => {
+                    if (!ordersByFarmer[o.farmer_id]) {
+                        ordersByFarmer[o.farmer_id] = [];
+                    }
+                    ordersByFarmer[o.farmer_id].push(o);
+                });
+
+                // Sort each farmer's orders by created_at ascending and assign 1-based index
+                Object.keys(ordersByFarmer).forEach(fId => {
+                    const sortedFarmerOrders = [...ordersByFarmer[fId]].sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+                    sortedFarmerOrders.forEach((o, index) => {
+                        orderNumberMap[o.id] = index + 1;
+                    });
+                });
+            }
+
+            // 4. Fetch live orders
+            const { data: dbOrders, error: ordErr } = await supabase
+                .from('orders')
+                .select('*')
+                .eq('buyer_id', buyerId);
+
+            if (!ordErr && dbOrders) {
+                const sortedOrders = [...dbOrders].sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+                setOrders(sortedOrders.map((o, idx) => {
+                    const matchedFarmer = dbFarmers ? dbFarmers.find(f => f.id === o.farmer_id) : null;
+                    const resolvedFarmerName = matchedFarmer 
+                        ? (matchedFarmer.full_name || matchedFarmer.farm_name) 
+                        : 'Verified Farmer';
+
+                    const initials = getFarmerInitials(resolvedFarmerName);
+                    const farmerOrderNum = orderNumberMap[o.id] || (idx + 1);
+                    return {
+                        id: o.id,
+                        displayId: `${initials} - ORD - ${String(farmerOrderNum).padStart(3, '0')}`,
+                        farmerId: o.farmer_id,
+                        farmerName: resolvedFarmerName,
+                        productId: o.product_id || '',
+                        productName: o.product || o.special_instructions || 'Farm Produce',
+                        quantity: parseFloat(o.quantity) || 50,
+                        amount: parseFloat(o.amount) || 0,
+                        status: o.status || 'pending',
+                        date: o.created_at ? o.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
+                        deliveryAddress: o.delivery_address || 'Registered Address'
+                    };
+                }));
+            }
+
+            // 5. Fetch live pitches
+            const { data: dbPitches, error: pitchErr } = await supabase
+                .from('pitches')
+                .select('*')
+                .eq('buyer_id', buyerId);
+
+            if (!pitchErr && dbPitches) {
+                const sortedPitches = [...dbPitches].sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+                setReceivedPitches(sortedPitches.map((p, idx) => {
+                    const matchedFarmer = dbFarmers ? dbFarmers.find(f => f.id === p.farmer_id) : null;
+                    const resolvedFarmerName = matchedFarmer 
+                        ? (matchedFarmer.full_name || matchedFarmer.farm_name) 
+                        : 'Farmer partner';
+
+                    return {
+                        id: p.id,
+                        displayId: 'PIT - ' + String(idx + 1).padStart(3, '0'),
+                        farmerId: p.farmer_id,
+                        farmerName: resolvedFarmerName,
+                        productId: p.product_id || '',
+                        productName: p.product_name || 'Produce offer',
+                        quantity: parseFloat(p.quantity) || 100,
+                        price: parseFloat(p.price) || 50,
+                        total: parseFloat(p.quantity) * parseFloat(p.price),
+                        message: p.message || '',
+                        status: p.status || 'pending',
+                        date: p.created_at ? p.created_at.split('T')[0] : new Date().toISOString().split('T')[0]
+                    };
+                }));
+            }
+
+        } catch (err) {
+            console.error("Database connection error:", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
         fetchDBData();
     }, []);
 
@@ -404,6 +439,67 @@ const BuyerDashboard = () => {
             setFilteredOrders([...orders]);
         }
     }, [orders, reportFromDate, reportToDate]);
+
+    // Update browser tab title dynamically
+    useEffect(() => {
+        if (buyerInfo.businessName) {
+            document.title = `${buyerInfo.businessName} | Buyer Dashboard`;
+        } else if (buyerInfo.name) {
+            document.title = `${buyerInfo.name} | Buyer Dashboard`;
+        } else {
+            document.title = "Buyer Dashboard";
+        }
+    }, [buyerInfo]);
+
+    // Realtime Supabase Subscription for buyer order updates (e.g. status changes)
+    useEffect(() => {
+        if (!buyerInfo.id) return;
+
+        console.log("Subscribing to realtime order updates for buyer:", buyerInfo.id);
+
+        const buyerOrdersChannel = supabase
+            .channel(`buyer_orders_${buyerInfo.id}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'orders'
+                },
+                (payload) => {
+                    console.log('Realtime Order Update Event Received:', payload.new);
+                    const updatedOrder = payload.new;
+                    if (!updatedOrder || String(updatedOrder.buyer_id) !== String(buyerInfo.id)) {
+                        return;
+                    }
+
+                    // Play a notification sound
+                    try {
+                        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-200.wav');
+                        audio.volume = 0.5;
+                        audio.play();
+                    } catch (audioErr) {
+                        console.log('Audio playback blocked/failed:', audioErr);
+                    }
+
+                    // Show a live toast notification
+                    showNotification(`📦 Order Status Updated! Your order for ${updatedOrder.product} is now ${updatedOrder.status.toUpperCase()}`);
+
+                    // Update state
+                    setOrders(prev => {
+                        return prev.map(o => o.id === updatedOrder.id ? {
+                            ...o,
+                            status: updatedOrder.status
+                        } : o);
+                    });
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(buyerOrdersChannel);
+        };
+    }, [buyerInfo.id]);
 
     // ============ UTILITIES ============
     const formatCurrency = (amt) => '₹' + parseFloat(amt).toLocaleString('en-IN');
@@ -620,7 +716,7 @@ const BuyerDashboard = () => {
             }
         }
 
-        setOrders(prev => [...prev, ...newOrdersList]);
+        await fetchDBData();
         setCart([]);
         setIsCartOpen(false);
         showNotification(`${cart.length} item(s) ordered successfully!`);
@@ -673,7 +769,7 @@ const BuyerDashboard = () => {
                 product.quantity -= quantity;
             }
 
-            setOrders(prev => [...prev, newOrder]);
+            await fetchDBData();
             showNotification('Order placed successfully!');
             toggleModal('order', false);
             setCurrentSection('orders');
@@ -699,6 +795,24 @@ const BuyerDashboard = () => {
             total: product.price * presetQty,
             deliveryAddress: buyerInfo.deliveryAddress,
             instructions: ''
+        });
+
+        toggleModal('productDetail', false);
+        toggleModal('order', true);
+    };
+
+    const openOrderModalFromPitch = (pitch) => {
+        const product = products.find(p => p.id === pitch.productId || p.name === pitch.productName);
+        setOrderForm({
+            productId: product ? String(product.id) : '',
+            farmerId: String(pitch.farmerId),
+            productName: pitch.productName,
+            farmerName: pitch.farmerName,
+            price: pitch.price,
+            quantity: pitch.quantity,
+            total: pitch.price * pitch.quantity,
+            deliveryAddress: buyerInfo.deliveryAddress,
+            instructions: `Ordered from Pitch ${pitch.displayId}`
         });
 
         toggleModal('productDetail', false);
@@ -863,8 +977,9 @@ const BuyerDashboard = () => {
             margin: [0.5, 0.5, 0.5, 0.5],
             filename: `${buyerInfo.businessName.toLowerCase().replace(/ /g, '-')}-report-${new Date().toISOString().split('T')[0]}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' },
+            pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
         };
 
         try {
@@ -922,7 +1037,7 @@ const BuyerDashboard = () => {
     };
 
     // ============ RENDERING COMPUTATIONS ============
-    const totalSpent = orders.filter(o => ['confirmed', 'shipped', 'delivered'].includes(o.status)).reduce((s, o) => s + o.amount, 0);
+    const totalSpent = orders.filter(o => ['shipped', 'delivered'].includes(o.status)).reduce((s, o) => s + o.amount, 0);
     const activeOrdersCount = orders.filter(o => ['pending', 'confirmed', 'shipped'].includes(o.status)).length;
     const pendingPitchesCount = receivedPitches.filter(p => p.status === 'pending').length;
 
@@ -934,9 +1049,9 @@ const BuyerDashboard = () => {
         return true;
     });
 
-    // Farmer-wise summary report computation - only confirmed, shipped, and delivered orders
+    // Farmer-wise summary report computation - only shipped and delivered orders
     const farmerPurchasesReportMap = {};
-    filteredOrders.filter(o => ['confirmed', 'shipped', 'delivered'].includes(o.status)).forEach(order => {
+    filteredOrders.filter(o => ['shipped', 'delivered'].includes(o.status)).forEach(order => {
         if (!farmerPurchasesReportMap[order.farmerName]) {
             farmerPurchasesReportMap[order.farmerName] = { quantity: 0, amount: 0, orders: 0 };
         }
@@ -1411,37 +1526,38 @@ const BuyerDashboard = () => {
                             </div>
 
                             {/* PDF Printable Container */}
-                            <div id="reportContainer" className="report-preview" style={{ position: 'relative', padding: '25px', backgroundColor: '#ffffff', borderRadius: '8px' }}>
-                                {/* Top Right Corner Brand Logo */}
-                                <div style={{ position: 'absolute', top: '25px', right: '25px' }}>
+                            <div id="reportContainer" className="report-preview" style={{ padding: '25px', backgroundColor: '#ffffff', borderRadius: '8px' }}>
+                                {/* Big Logo on the Right Corner */}
+                                <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%', marginBottom: '10px' }}>
                                     <img
                                         src={logo}
                                         alt="Farm Vantara Logo"
-                                        style={{ height: '40px', width: 'auto' }}
+                                        style={{ height: '70px', width: 'auto', display: 'block' }}
                                     />
                                 </div>
 
-                                <div className="report-header" style={{ paddingRight: '180px', marginBottom: '20px' }}>
-                                    <h2>{buyerInfo.businessName} - Purchase Report</h2>
-                                    <p>{new Date().toLocaleString('en-IN')}</p>
+                                {/* Centered Title and Date Details */}
+                                <div className="report-header" style={{ textAlign: 'center', borderBottom: '2px solid #27ae60', paddingBottom: '15px', marginBottom: '25px' }}>
+                                    <h2 style={{ margin: '0 auto 10px auto', color: '#219653', fontSize: '28px', fontWeight: '700' }}>{buyerInfo.businessName} - Purchase Report</h2>
+                                    <p style={{ margin: '5px 0 0 0', color: '#636e72', fontSize: '14px', fontWeight: '500' }}>Report Date: {new Date().toLocaleString('en-IN')}</p>
                                 </div>
                                 <div className="report-summary">
                                     <div className="report-summary-card">
-                                        <div className="value">{formatCurrency(filteredOrders.filter(o => ['confirmed', 'shipped', 'delivered'].includes(o.status)).reduce((s, o) => s + o.amount, 0))}</div>
+                                        <div className="value">{formatCurrency(filteredOrders.filter(o => ['shipped', 'delivered'].includes(o.status)).reduce((s, o) => s + o.amount, 0))}</div>
                                         <div>Total Spend</div>
                                     </div>
                                     <div className="report-summary-card">
-                                        <div className="value">{filteredOrders.filter(o => ['confirmed', 'shipped', 'delivered'].includes(o.status)).length}</div>
+                                        <div className="value">{filteredOrders.filter(o => ['shipped', 'delivered'].includes(o.status)).length}</div>
                                         <div>Orders</div>
                                     </div>
                                     <div className="report-summary-card">
-                                        <div className="value">{filteredOrders.filter(o => ['confirmed', 'shipped', 'delivered'].includes(o.status)).reduce((s, o) => s + o.quantity, 0)} kg</div>
+                                        <div className="value">{filteredOrders.filter(o => ['shipped', 'delivered'].includes(o.status)).reduce((s, o) => s + o.quantity, 0)} kg</div>
                                         <div>Quantity</div>
                                     </div>
                                     <div className="report-summary-card">
                                         <div className="value">
-                                            {filteredOrders.filter(o => ['confirmed', 'shipped', 'delivered'].includes(o.status)).length > 0
-                                                ? formatCurrency(Math.round(filteredOrders.filter(o => ['confirmed', 'shipped', 'delivered'].includes(o.status)).reduce((s, o) => s + o.amount, 0) / filteredOrders.filter(o => ['confirmed', 'shipped', 'delivered'].includes(o.status)).length))
+                                            {filteredOrders.filter(o => ['shipped', 'delivered'].includes(o.status)).length > 0
+                                                ? formatCurrency(Math.round(filteredOrders.filter(o => ['shipped', 'delivered'].includes(o.status)).reduce((s, o) => s + o.amount, 0) / filteredOrders.filter(o => ['shipped', 'delivered'].includes(o.status)).length))
                                                 : '₹0'}
                                         </div>
                                         <div>Avg Order</div>
@@ -1546,7 +1662,7 @@ const BuyerDashboard = () => {
                                                         <div className="interest-area">
                                                             <strong>Message:</strong><br />{p.message}
                                                         </div>
-                                                        <div className="product-actions">
+                                                        <div className="product-actions" style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
                                                             {p.status === 'pending' ? (
                                                                 <>
                                                                     <button className="btn btn-success btn-small" onClick={() => handleRespondToPitch(p.id, 'interested')}>
@@ -1557,9 +1673,20 @@ const BuyerDashboard = () => {
                                                                     </button>
                                                                 </>
                                                             ) : (
-                                                                <span className={`order-status status-${p.status === 'interested' ? 'confirmed' : 'delivered'}`}>
-                                                                    {p.status.toUpperCase()}
-                                                                </span>
+                                                                <>
+                                                                    <span className={`order-status status-${p.status === 'interested' ? 'confirmed' : 'delivered'}`}>
+                                                                        {p.status.toUpperCase()}
+                                                                    </span>
+                                                                    {p.status === 'interested' && (
+                                                                        <button 
+                                                                            className="btn btn-primary btn-small" 
+                                                                            onClick={() => openOrderModalFromPitch(p)}
+                                                                            style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}
+                                                                        >
+                                                                            <i className="fas fa-shopping-basket"></i> Order Now
+                                                                        </button>
+                                                                    )}
+                                                                </>
                                                             )}
                                                         </div>
                                                     </div>
@@ -2084,7 +2211,7 @@ const BuyerDashboard = () => {
                             </div>
                             <div style={{ gridColumn: '1 / -1' }}>
                                 <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#64748b', marginBottom: '4px' }}>Delivery Address</div>
-                                <div style={{ fontSize: '13px', color: '#334155', lineHeight: '1.4' }}>{trackedOrder.deliveryAddress}</div>
+                                <div style={{ fontSize: '13px', color: '#334155', lineHeight: '1.4' }}>{trackedOrder.deliveryAddress || trackedOrder.delivery_address || 'Registered Address'}</div>
                             </div>
                         </div>
 

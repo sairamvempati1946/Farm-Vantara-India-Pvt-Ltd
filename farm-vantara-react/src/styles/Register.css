@@ -266,16 +266,16 @@ h5 {
 
 /* Role Selection - UPDATED: Smaller cards in single line */
 /* Role Selection */
-.role-selection {
+.registration-flow .role-selection {
     padding: 40px;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    /* 3 cards side by side */
-    gap: 20px;
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: center;
+    gap: 30px;
 }
 
 /* Role Card */
-.role-card {
+.registration-flow .role-card {
     background: var(--light-gray);
     border: 2px solid var(--medium-gray);
     border-radius: 15px;
@@ -287,6 +287,8 @@ h5 {
     flex-direction: column;
     align-items: center;
     gap: 15px;
+    flex: 1 1 300px;
+    max-width: 380px;
 }
 
 .role-card:hover {
@@ -1116,17 +1118,6 @@ textarea.error {
         font-size: 2.2rem;
     }
 
-    .role-selection {
-        padding: 30px 20px;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .role-card {
-        width: 100%;
-        max-width: 400px;
-    }
-
     .form-container {
         padding: 30px 20px;
     }
@@ -1163,6 +1154,17 @@ textarea.error {
 
     .hero-subtitle {
         font-size: 1rem;
+    }
+
+    .registration-flow .role-selection {
+        padding: 30px 20px;
+        flex-direction: column !important;
+        align-items: center;
+    }
+
+    .registration-flow .role-card {
+        width: 100%;
+        max-width: 400px;
     }
 
     .progress-steps::before {

@@ -1007,11 +1007,8 @@
     padding: 15px;
     border-radius: 10px;
     text-align: center;
-}
-
-.buyer-dashboard-page .report-summary-card .value {
-    font-size: 20px;
-    font-weight: 700;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
 }
 
 .buyer-dashboard-page .report-section-title {
@@ -1020,12 +1017,19 @@
     margin: 20px 0 10px;
     padding-bottom: 5px;
     border-bottom: 2px solid var(--primary-green);
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
 }
 
 .buyer-dashboard-page .report-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 12px;
+}
+
+.buyer-dashboard-page .report-table tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
 }
 
 .buyer-dashboard-page .report-table th,
